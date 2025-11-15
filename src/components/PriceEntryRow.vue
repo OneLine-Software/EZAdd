@@ -41,7 +41,7 @@ const handleKeydown = (event: KeyboardEvent) => {
           :model-value="value"
           type="text"
           placeholder="0.00"
-          class="text-xl price-input mb-3"
+          class="text-xl price-input my-3"
           @update:model-value="emit('update:value', $event)"
           @keydown="handleKeydown"
         />

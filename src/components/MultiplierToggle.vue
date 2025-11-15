@@ -61,7 +61,7 @@ const clearMultiplier = () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 w-[25%]">
+  <div class="flex flex-col gap-2 w-[25%] lt-sm:w-[40%]">
   <div class="flex items-center gap-2">
     <!-- Multiplier Tabs -->
     <Tabs :model-value="currentTab" @update:model-value="handleTabChange">
@@ -115,7 +115,7 @@ const clearMultiplier = () => {
   <div class="w-full mt-2 px-1">
     <Slider
       :model-value="[multiplier]"
-      :min="1"
+      :min="0.5"
       :max="10"
       :step="0.5"
       class="w-full"
