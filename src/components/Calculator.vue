@@ -2,14 +2,16 @@
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { Kbd } from '@/components/ui/kbd'
 import { Plus } from 'lucide-vue-next'
-import PriceInput from './PriceInput.vue'
+import PriceEntryRow from './PriceEntryRow.vue'
 import TaxManager from './TaxManager.vue'
 import TotalDisplay from './TotalDisplay.vue'
 import SettingsMenu from './SettingsMenu.vue'
+import FloatingTotal from './FloatingTotal.vue'
 
 interface PriceEntry {
   id: number
   value: string
+  multiplier: number
 }
 
 interface TaxEntry {
@@ -19,7 +21,7 @@ interface TaxEntry {
   label: string
 }
 
-const prices = ref<PriceEntry[]>([{ id: 1, value: '' }])
+const prices = ref<PriceEntry[]>([{ id: 1, value: '', multiplier: 1 }])
 let nextPriceId = 2
 
 const taxes = ref<TaxEntry[]>([])
@@ -31,7 +33,7 @@ const themeColor = ref('#000000')
 const subtotal = computed(() => {
   return prices.value.reduce((sum, entry) => {
     const num = parseFloat(entry.value) || 0
-    return sum + num
+    return sum + (num * entry.multiplier)
   }, 0)
 })
 
@@ -50,7 +52,7 @@ const total = computed(() => {
 })
 
 const addEntry = () => {
-  prices.value.push({ id: nextPriceId++, value: '' })
+  prices.value.push({ id: nextPriceId++, value: '', multiplier: 1 })
   nextTick(() => {
     const inputs = document.querySelectorAll('.price-input')
     const lastInput = inputs[inputs.length - 1] as HTMLInputElement
@@ -73,6 +75,10 @@ const removeEntry = (index: number) => {
 
 const updatePrice = (index: number, value: string) => {
   prices.value[index].value = value
+}
+
+const updateMultiplier = (index: number, multiplier: number) => {
+  prices.value[index].multiplier = multiplier
 }
 
 const addTax = (tax: Omit<TaxEntry, 'id'>) => {
@@ -98,12 +104,26 @@ const updateTheme = (color: string) => {
 }
 
 onMounted(() => {
-  // Check system preference
+  // Check and apply system theme preference
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   isDark.value = prefersDark
   if (prefersDark) {
     document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
   }
+  
+  // Listen for system theme changes
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  const handleThemeChange = (e: MediaQueryListEvent) => {
+    isDark.value = e.matches
+    if (e.matches) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
+  mediaQuery.addEventListener('change', handleThemeChange)
   
   // Fix mobile viewport height (accounts for address bar)
   const setVH = () => {
@@ -133,16 +153,17 @@ onMounted(() => {
       <!-- Price Entries - Scrollable -->
       <div class="flex-1 overflow-y-auto px-4 py-6 space-y-1 min-h-0">
         <TransitionGroup name="list">
-          <PriceInput
+          <PriceEntryRow
             v-for="(entry, index) in prices"
             :key="entry.id"
             :value="entry.value"
+            :multiplier="entry.multiplier"
             :index="index"
             :can-delete="prices.length > 1"
             @update:value="updatePrice(index, $event)"
+            @update:multiplier="updateMultiplier(index, $event)"
             @delete="removeEntry(index)"
             @add-entry="addEntry"
-            @focus="() => {}"
           />
         </TransitionGroup>
         
@@ -171,6 +192,9 @@ onMounted(() => {
         :subtotal="subtotal"
       />
     </main>
+    
+    <!-- Floating Total (Mobile Only, When Keyboard Active) -->
+    <FloatingTotal :total="total" />
   </div>
 </template>
 

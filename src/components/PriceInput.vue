@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
 import { X } from 'lucide-vue-next'
+import { useDeviceDetection } from '@/composables/useDeviceDetection'
 
 interface Props {
   value: string
@@ -20,6 +21,20 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const { isAndroid, isIOS } = useDeviceDetection()
+
+// Use number input for Android and desktop, text for iOS
+const inputType = computed(() => {
+  if (isIOS.value) return 'text'
+  if (isAndroid.value) return 'number'
+  return 'number' // Desktop default
+})
+
+const inputMode = computed(() => {
+  if (isIOS.value) return 'decimal'
+  return undefined // Let number input handle it on Android/desktop
+})
 
 const localValue = ref(props.value)
 
@@ -56,12 +71,12 @@ const handleKeydown = (event: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 py-2 border-b border-border/30 last:border-0 group">
+  <div class="flex items-center gap-2 py-2 group">
     <Input
       v-model="localValue"
-      type="text"
+      :type="inputType"
       placeholder="0.00"
-      class="price-input flex-1 text-lg border-0 shadow-none focus-visible:ring-0 px-2"
+      class="price-input flex-1 border-0 shadow-none focus-visible:ring-0 px-2"
       @keydown="handleKeydown"
       @focus="emit('focus')"
     />

@@ -44,7 +44,7 @@ const colors = ['#000000', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'
           </Button>
         </div>
         
-        <div class="space-y-2">
+        <div class="flex flex-col space-y-2 gap-1">
           <label class="text-sm font-medium">Theme Color</label>
           <div class="flex gap-2 flex-wrap">
             <button

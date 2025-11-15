@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Toggle } from '@/components/ui/toggle'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { X, Plus } from 'lucide-vue-next'
 
 interface TaxEntry {
@@ -111,22 +111,16 @@ onUnmounted(() => {
             <div>
               <h4 class="font-semibold mb-3">Add Tax</h4>
               
-              <div class="flex gap-2 mb-3">
-                <Toggle
-                  :pressed="taxType === 'percentage'"
-                  @click="taxType = 'percentage'"
-                  class="flex-1"
-                >
-                  Percentage
-                </Toggle>
-                <Toggle
-                  :pressed="taxType === 'flat'"
-                  @click="taxType = 'flat'"
-                  class="flex-1"
-                >
-                  Flat Fee
-                </Toggle>
-              </div>
+              <Tabs v-model="taxType" class="mb-3">
+                <TabsList class="grid w-full grid-cols-2">
+                  <TabsTrigger value="percentage">
+                    Percentage
+                  </TabsTrigger>
+                  <TabsTrigger value="flat">
+                    Flat Fee
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
               
               <div class="space-y-2">
                 <Input

@@ -4,16 +4,22 @@ A mobile-first addition calculator built with Vue 3, TypeScript, Vite, and Tailw
 
 ## Features
 
-### 💰 Price Entries
-- **Dynamic input fields** - Add unlimited price entries
-- **Mobile-optimized** - Text input with decimal keyboard (supports negative numbers with `-`)
-- **Smart validation** - Only allows numbers, decimals, and minus sign
+- **Dynamic Price Entries** - Add/remove as many items as you need
+- **Quantity Multipliers** - 2×, 3×, or custom multipliers for each entry
+- **Real-time Calculation** - Automatic subtotal and total
+- **Multiple Tax Support** - Add multiple taxes (percentage or flat fee) with custom labels
+- **Floating Total** - Total stays visible above keyboard on mobile
+- **Dark Mode** - Automatically matches system theme on open
+- **Theme Colors** - Customize the primary color
+- **PWA Support** - Install as app, works offline
+- **Mobile Optimized** - Touch-friendly interface with proper keyboard handling
+- **Input Validation** - Only allows numbers, decimals, and negative values
+- **Smart Keyboard** - iOS gets standard keyboard, Android gets number pad with negatives sign
 - **Keyboard shortcuts**:
   - `Enter` - Add new entry (desktop)
   - `Cmd/Ctrl + Backspace` - Delete current entry
 - **Click "Add item"** button for mobile users
 
-### 📊 Multiple Taxes
 - **Add multiple taxes** - Support for both percentage and flat fees
 - **Custom labels** - Name your taxes (e.g., "Sales Tax", "Service Fee")
 - **Auto-labeling** - Defaults to "X%" or "+$X" if no label provided
@@ -64,12 +70,37 @@ Desktop only (hidden on mobile):
 # Install dependencies
 npm install
 
+# Install PWA plugin
+npm install --save-dev @vite-pwa/vite-plugin-pwa workbox-window
+
 # Start dev server (accessible on local network)
 npm run dev
 
 # Build for production
 npm run build
+
+# Preview production build (test PWA)
+npm run preview
 ```
+
+## PWA Installation
+
+After building, the app can be installed as a Progressive Web App:
+
+1. **Mobile (iOS/Android):**
+   - Open in Safari/Chrome
+   - Tap "Add to Home Screen" when prompted
+   - App opens in fullscreen mode
+
+2. **Desktop:**
+   - Look for install icon in address bar
+   - Click to install as desktop app
+
+3. **Offline Support:**
+   - Works offline after first load
+   - Auto-updates in background
+
+See [PWA_SETUP.md](./PWA_SETUP.md) for detailed configuration and icon requirements.
 
 ## Requirements
 
