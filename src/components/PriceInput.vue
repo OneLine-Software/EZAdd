@@ -26,14 +26,9 @@ const { isAndroid, isIOS } = useDeviceDetection()
 
 // Use number input for Android and desktop, text for iOS
 const inputType = computed(() => {
-  if (isIOS.value) return 'text'
+  if (isIOS.value) return 'text' // iOS doesn't handle number inputs well
   if (isAndroid.value) return 'number'
   return 'number' // Desktop default
-})
-
-const inputMode = computed(() => {
-  if (isIOS.value) return 'decimal'
-  return undefined // Let number input handle it on Android/desktop
 })
 
 const localValue = ref(props.value)

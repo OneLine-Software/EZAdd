@@ -4,7 +4,7 @@ import App from './App.vue'
 import { registerSW } from 'virtual:pwa-register'
 
 // Register service worker for PWA
-const updateSW = registerSW({
+registerSW({
   onNeedRefresh() {
     // Optional: show a prompt to user to reload the app
     console.log('New content available, please refresh.')

@@ -34,10 +34,11 @@ const currentTab = computed(() => {
   return '1' // default/none (custom multipliers don't have a tab)
 })
 
-const handleTabChange = (value: string) => {
-  if (value === '2') {
+const handleTabChange = (value: string | number) => {
+  const val = String(value)
+  if (val === '2') {
     emit('update:multiplier', 2)
-  } else if (value === '3') {
+  } else if (val === '3') {
     emit('update:multiplier', 3)
   } else {
     // value === '1' or clicking same tab = turn off
@@ -118,7 +119,7 @@ const clearMultiplier = () => {
       :max="10"
       :step="0.5"
       class="w-full"
-      @update:model-value="(value) => emit('update:multiplier', value[0])"
+      @update:model-value="(value) => value && value[0] && emit('update:multiplier', value[0])"
     />
     <div class="flex justify-between text-[10px] text-muted-foreground mt-0.5">
       <span>1×</span>
