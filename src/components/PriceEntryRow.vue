@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { X } from 'lucide-vue-next'
 import MultiplierToggle from './MultiplierToggle.vue'
+import { useDeviceDetection } from '@/composables/useDeviceDetection'
 
 interface Props {
   value: string
@@ -20,6 +22,15 @@ interface Emits {
 
 defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const { isAndroid, isIOS } = useDeviceDetection()
+
+// Use number input for Android and desktop, text for iOS
+const inputType = computed(() => {
+  if (isIOS.value) return 'text' // iOS doesn't handle number inputs well
+  if (isAndroid.value) return 'number'
+  return 'number' // Desktop default
+})
 
 const handleKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Enter') {
@@ -39,9 +50,9 @@ const handleKeydown = (event: KeyboardEvent) => {
       <InputGroup>
         <InputGroupInput
           :model-value="value"
-          type="text"
+          :type="inputType"
           placeholder="0.00"
-          class="text-xl price-input my-3"
+          class="text-2xl font-bold price-input my-1"
           @update:model-value="emit('update:value', $event)"
           @keydown="handleKeydown"
         />

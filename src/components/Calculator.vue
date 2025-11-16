@@ -7,6 +7,7 @@ import TaxManager from './TaxManager.vue'
 import TotalDisplay from './TotalDisplay.vue'
 import SettingsMenu from './SettingsMenu.vue'
 import FloatingTotal from './FloatingTotal.vue'
+import { useToast } from '@/composables/useToast'
 
 interface PriceEntry {
   id: number
@@ -29,6 +30,7 @@ let nextTaxId = 1
 
 const isDark = ref(false)
 const themeColor = ref('#000000')
+const { success, info } = useToast()
 
 const subtotal = computed(() => {
   return prices.value.reduce((sum, entry) => {
@@ -132,6 +134,15 @@ onMounted(() => {
   }
   setVH()
   window.addEventListener('resize', setVH)
+  
+  // Listen for PWA events
+  window.addEventListener('pwa-ready', ((e: CustomEvent) => {
+    success(e.detail.message, 4000)
+  }) as EventListener)
+  
+  window.addEventListener('pwa-update', ((e: CustomEvent) => {
+    info(e.detail.message, 5000)
+  }) as EventListener)
 })
 </script>
 

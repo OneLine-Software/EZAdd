@@ -83,9 +83,9 @@ onUnmounted(() => {
       >
         <!-- Glassmorphism Card -->
         <div 
-          class="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border border-gray-200/50 dark:border-gray-700/50 shadow-2xl rounded-2xl px-4 py-3 min-w-[120px]"
+          class="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-2 border-primary/20 shadow-2xl shadow-primary/5 rounded-2xl px-4 py-3 min-w-[120px]"
         >
-          <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400 mb-1">
+          <div class="text-[10px] uppercase tracking-wider font-semibold text-primary/70 mb-1">
             Total
           </div>
           <div class="text-2xl font-bold tabular-nums text-gray-900 dark:text-white">
