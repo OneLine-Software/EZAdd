@@ -43,29 +43,9 @@ const copySplit = async () => {
 </script>
 
 <template>
-  <div class="bg-primary text-primary-foreground px-6 py-4 shrink-0">
-    <div class="flex justify-between items-center gap-3">
-      <span class="text-lg font-bold">Total</span>
-      <div class="flex items-center gap-2">
-        <span class="text-xl font-extrabold">
-          ${{ total.toFixed(2) }}
-        </span>
-        <button
-          @click="copyTotal"
-          class="p-1.5 hover:bg-white/20 rounded-md transition-colors"
-          :title="isCopied ? 'Copied!' : 'Copy total'"
-        >
-          <Check v-if="isCopied" class="size-4" />
-          <Clipboard v-else class="size-4" />
-        </button>
-      </div>
-    </div>
-    <div v-if="subtotal !== total" class="text-sm opacity-80 mt-1 text-right">
-      Subtotal: ${{ subtotal.toFixed(2) }}
-    </div>
-    
-    <!-- Split Total Section -->
-    <div class="mt-3 pt-3 border-t border-primary-foreground/20">
+  <div class="bg-primary text-primary-foreground px-6 pt-4 pb-4 shrink-0" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
+    <!-- Split Total Section (moved to top) -->
+    <div class="mb-3 pb-3 border-b border-primary-foreground/20">
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3 flex-1">
           <span class="text-xs font-medium opacity-80">Split by</span>
@@ -98,6 +78,27 @@ const copySplit = async () => {
           </button>
         </div>
       </div>
+    </div>
+    
+    <!-- Total Section -->
+    <div class="flex justify-between items-center gap-3">
+      <span class="text-lg font-bold">Total</span>
+      <div class="flex items-center gap-2">
+        <span class="text-xl font-extrabold">
+          ${{ total.toFixed(2) }}
+        </span>
+        <button
+          @click="copyTotal"
+          class="p-1.5 hover:bg-white/20 rounded-md transition-colors"
+          :title="isCopied ? 'Copied!' : 'Copy total'"
+        >
+          <Check v-if="isCopied" class="size-4" />
+          <Clipboard v-else class="size-4" />
+        </button>
+      </div>
+    </div>
+    <div v-if="subtotal !== total" class="text-sm opacity-80 mt-1 text-right">
+      Subtotal: ${{ subtotal.toFixed(2) }}
     </div>
   </div>
 </template>

@@ -77,7 +77,7 @@ const triggerCache = async () => {
       </Button>
     </PopoverTrigger>
     <PopoverContent class="w-64">
-      <div class="space-y-4">
+      <div class="space-y-2">
         <div>
           <h3 class="font-semibold mb-2">Settings</h3>
         </div>
@@ -139,6 +139,37 @@ const triggerCache = async () => {
           >
             ☕ Buy me a coffee
           </a>
+        </div>
+        <div class="pt-2 border-t space-y-2">
+        <p class="text-xs flex items-center justify-center gap-0.5">
+            A
+            <a
+              href="https://oneline.software"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group inline-flex transition-all"
+            >
+              <span
+                class="inline-flex items-center gap-1 px-1 py-0.5 rounded-full"
+              >
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-transparent"
+                >
+                  <img
+                    src="@/assets/oneline.png"
+                    alt="OneLine"
+                    class="h-4 w-auto"
+                  />
+                  <span
+                    class="font-bold bg-linear-to-r from-purple-600 to-cyan-500 bg-clip-text text-transparent text-xs"
+                  >
+                    OneLine
+                  </span>
+                </span>
+              </span>
+            </a>
+            Project
+          </p>
         </div>
       </div>
     </PopoverContent>

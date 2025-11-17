@@ -8,6 +8,8 @@ import TotalDisplay from './TotalDisplay.vue'
 import SettingsMenu from './SettingsMenu.vue'
 import FloatingTotal from './FloatingTotal.vue'
 import { useToast } from '@/composables/useToast'
+import LogoDark from '@/assets/EZAdd_dark_logo.svg'
+import LogoLight from '@/assets/EZAdd_light_logo.svg'
 
 interface PriceEntry {
   id: number
@@ -150,7 +152,21 @@ onMounted(() => {
   <div class="h-screen flex flex-col bg-background overflow-hidden">
     <!-- Header with Settings -->
     <header class="p-4 flex justify-between items-center border-b border-border/40 shrink-0">
-      <h1 class="text-2xl font-bold">EZAdd</h1>
+      <div class="flex items-center gap-2">
+        <img 
+          v-if="isDark" 
+          :src="LogoDark" 
+          alt="EZAdd Logo" 
+          class="h-12 w-auto"
+        />
+        <img 
+          v-else 
+          :src="LogoLight" 
+          alt="EZAdd Logo" 
+          class="h-12 w-auto"
+        />
+        <h1 class="text-2xl font-bold">EZAdd</h1>
+      </div>
       <SettingsMenu
         :is-dark="isDark"
         :theme-color="themeColor"
