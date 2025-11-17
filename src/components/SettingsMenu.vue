@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Settings, Sun, Moon, Github, Download } from 'lucide-vue-next'
 import { useToast } from '@/composables/useToast'
+import FeatureRequestForm from './FeatureRequestForm.vue'
+import FeedbackForm from './FeedbackForm.vue'
 
 interface Props {
   isDark: boolean
@@ -140,6 +142,12 @@ const triggerCache = async () => {
             ☕ Buy me a coffee
           </a>
         </div>
+
+        <div class="pt-2 border-t space-y-2">
+          <FeatureRequestForm />
+          <FeedbackForm />
+        </div>
+
         <div class="pt-2 border-t space-y-2">
         <p class="text-xs flex items-center justify-center gap-0.5">
             A

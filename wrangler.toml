@@ -1,0 +1,7 @@
+name = "ezadd-api"
+compatibility_date = "2024-11-17"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ezadd"
+database_id = "dd516bc2-94e6-4157-b458-7275de1ae8bb"
