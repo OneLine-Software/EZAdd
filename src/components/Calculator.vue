@@ -222,6 +222,7 @@ onUnmounted(() => {
           <button
             @click="clearAll"
             class="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
+            aria-label="Clear all entries"
           >
             <Trash2 class="size-3" />
             Clear all

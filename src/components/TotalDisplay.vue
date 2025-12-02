@@ -83,6 +83,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  if (splitTimeout) clearTimeout(splitTimeout)
 })
 
 const copySplit = async () => {

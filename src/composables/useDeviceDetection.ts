@@ -19,7 +19,10 @@ export function useDeviceDetection() {
     isMobile.value = isAndroid.value || isIOS.value || /mobile/i.test(userAgent)
     
     // Detect macOS (for keyboard shortcut display)
-    isMac.value = /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+    isMac.value = 
+      ((navigator as any).userAgentData && (navigator as any).userAgentData.platform
+        ? /Mac/.test((navigator as any).userAgentData.platform)
+        : /Macintosh/.test(userAgent))
   })
 
   return {
