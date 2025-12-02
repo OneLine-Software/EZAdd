@@ -54,7 +54,6 @@ const handleKeydown = (event: KeyboardEvent) => {
         <InputGroupInput
           :model-value="value"
           :type="inputType"
-          :inputmode="isIOS ? 'numeric' : undefined"
           placeholder="0.00"
           class="text-2xl font-bold price-input my-1"
           @update:model-value="emit('update:value', $event)"
