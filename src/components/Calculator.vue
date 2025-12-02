@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { Kbd } from '@/components/ui/kbd'
-import { Plus } from 'lucide-vue-next'
+import { Plus, Trash2 } from 'lucide-vue-next'
 import PriceEntryRow from './PriceEntryRow.vue'
 import TaxManager from './TaxManager.vue'
 import TotalDisplay from './TotalDisplay.vue'
@@ -33,6 +33,37 @@ let nextTaxId = 1
 const isDark = ref(false)
 const themeColor = ref('#000000')
 const { success, info } = useToast()
+
+const clearAll = () => {
+  prices.value = [{ id: nextPriceId++, value: '', multiplier: 1 }]
+  nextTick(() => {
+    const input = document.querySelector('.price-input') as HTMLInputElement
+    input?.focus()
+  })
+}
+
+const handleGlobalKeydown = (event: KeyboardEvent) => {
+  // Escape to blur current focus
+  if (event.key === 'Escape') {
+    (document.activeElement as HTMLElement)?.blur()
+    return
+  }
+  
+  // Shift+Backspace to clear all
+  if (event.shiftKey && event.key === 'Backspace') {
+    event.preventDefault()
+    clearAll()
+    return
+  }
+  
+  // N to add new entry (only when not focused on input)
+  const activeElement = document.activeElement
+  const isInputFocused = activeElement?.tagName === 'INPUT' || activeElement?.tagName === 'TEXTAREA'
+  if (event.key.toLowerCase() === 'n' && !isInputFocused && !event.metaKey && !event.ctrlKey) {
+    event.preventDefault()
+    addEntry()
+  }
+}
 
 const subtotal = computed(() => {
   return prices.value.reduce((sum, entry) => {
@@ -145,6 +176,13 @@ onMounted(() => {
   window.addEventListener('pwa-update', ((e: CustomEvent) => {
     info(e.detail.message, 5000)
   }) as EventListener)
+  
+  // Global keyboard shortcuts
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
 })
 </script>
 
@@ -179,6 +217,19 @@ onMounted(() => {
     <main class="flex-1 flex flex-col min-h-0">
       <!-- Price Entries - Scrollable -->
       <div class="flex-1 overflow-y-auto px-4 py-6 space-y-1 min-h-0">
+        <!-- Clear All Button -->
+        <div class="flex justify-end mb-2">
+          <button
+            @click="clearAll"
+            class="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
+            aria-label="Clear all entries"
+          >
+            <Trash2 class="size-3" />
+            Clear all
+            <Kbd class="ml-1 hidden md:inline-flex">⇧⌫</Kbd>
+          </button>
+        </div>
+        
         <TransitionGroup name="list">
           <PriceEntryRow
             v-for="(entry, index) in prices"
@@ -201,7 +252,11 @@ onMounted(() => {
         >
           <Plus class="size-4" />
           Add item
-          <Kbd class="ml-2 hidden md:inline-flex">⏎</Kbd>
+          <span class="ml-2 hidden md:inline-flex items-center gap-1 text-xs">
+            <Kbd>⏎</Kbd>
+            <span class="text-muted-foreground/60">or</span>
+            <Kbd>N</Kbd>
+          </span>
         </button>
       </div>
 
