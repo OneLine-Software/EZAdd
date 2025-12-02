@@ -132,6 +132,7 @@ const copySplit = async () => {
             @click="copySplit"
             class="p-1 hover:bg-white/20 rounded-md transition-colors flex items-center gap-1"
             :title="isSplitCopied ? 'Copied!' : 'Copy split amount'"
+            :aria-label="isSplitCopied ? 'Copied!' : 'Copy split amount'"
           >
             <Check v-if="isSplitCopied" class="size-3" />
             <Clipboard v-else class="size-3" />
