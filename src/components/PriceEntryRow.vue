@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Kbd } from '@/components/ui/kbd'
 import { X } from 'lucide-vue-next'
 import MultiplierToggle from './MultiplierToggle.vue'
 import { useDeviceDetection } from '@/composables/useDeviceDetection'
@@ -23,7 +24,9 @@ interface Emits {
 defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { isAndroid, isIOS } = useDeviceDetection()
+const { isAndroid, isIOS, isMac } = useDeviceDetection()
+
+const deleteShortcutKey = computed(() => isMac.value ? '⌘' : 'Ctrl')
 
 // Use number input for Android and desktop, text for iOS
 const inputType = computed(() => {
@@ -67,15 +70,18 @@ const handleKeydown = (event: KeyboardEvent) => {
         </InputGroupAddon>
       </InputGroup>
       
-      <Button
-        variant="ghost"
-        size="icon"
-        class="size-8 text-muted-foreground hover:text-destructive shrink-0"
-        :disabled="!canDelete"
-        @click="emit('delete')"
-      >
-        <X class="size-4" />
-      </Button>
+      <div class="flex items-center gap-1 shrink-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-8 text-muted-foreground hover:text-destructive"
+          :disabled="!canDelete"
+          @click="emit('delete')"
+        >
+          <X class="size-4" />
+        </Button>
+        <Kbd class="hidden md:inline-flex text-[10px]">{{ deleteShortcutKey }}⌫</Kbd>
+      </div>
     </div>
   </div>
 </template>

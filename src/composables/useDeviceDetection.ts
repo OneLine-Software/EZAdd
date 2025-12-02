@@ -4,6 +4,7 @@ export function useDeviceDetection() {
   const isAndroid = ref(false)
   const isIOS = ref(false)
   const isMobile = ref(false)
+  const isMac = ref(false)
 
   onMounted(() => {
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
@@ -16,11 +17,15 @@ export function useDeviceDetection() {
 
     // Detect mobile
     isMobile.value = isAndroid.value || isIOS.value || /mobile/i.test(userAgent)
+    
+    // Detect macOS (for keyboard shortcut display)
+    isMac.value = /Mac|iPod|iPhone|iPad/.test(navigator.platform)
   })
 
   return {
     isAndroid,
     isIOS,
-    isMobile
+    isMobile,
+    isMac
   }
 }

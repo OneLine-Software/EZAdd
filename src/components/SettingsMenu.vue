@@ -85,7 +85,7 @@ const triggerCache = async () => {
         </div>
         
         <div class="flex items-center justify-between">
-          <span class="text-sm">Dark Mode</span>
+          <span class="text-sm">Light/Dark Mode</span>
           <Button
             variant="outline"
             size="icon"
