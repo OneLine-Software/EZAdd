@@ -18,7 +18,7 @@ const awaitingSplitNumber = ref(false)
 let splitTimeout: ReturnType<typeof setTimeout> | null = null
 
 const splitAmount = computed(() => {
-  return (props.total / splitBy.value).toFixed(2)
+  return props.total / splitBy.value
 })
 
 const formatNumber = (num: number) => {
@@ -88,7 +88,7 @@ onUnmounted(() => {
 
 const copySplit = async () => {
   try {
-    await navigator.clipboard.writeText(splitAmount.value)
+    await navigator.clipboard.writeText(splitAmount.value.toFixed(2))
     isSplitCopied.value = true
     setTimeout(() => {
       isSplitCopied.value = false
@@ -126,7 +126,7 @@ const copySplit = async () => {
         <!-- Split Amount Display -->
         <div v-if="splitBy > 1" class="flex items-center gap-2">
           <span class="text-lg font-bold">
-            ${{ formatNumber(parseFloat(splitAmount)) }}
+            ${{ formatNumber(splitAmount) }}
           </span>
           <button
             @click="copySplit"
@@ -153,6 +153,7 @@ const copySplit = async () => {
           @click="copyTotal"
           class="p-1.5 hover:bg-white/20 rounded-md transition-colors flex items-center gap-1"
           :title="isTotalCopied ? 'Copied!' : 'Copy total'"
+          :aria-label="isTotalCopied ? 'Copied!' : 'Copy total'"
         >
           <Check v-if="isTotalCopied" class="size-4" />
           <Clipboard v-else class="size-4" />
