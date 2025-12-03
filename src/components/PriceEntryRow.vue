@@ -19,6 +19,7 @@ interface Emits {
   (e: 'update:multiplier', value: number): void
   (e: 'delete'): void
   (e: 'add-entry'): void
+  (e: 'bulk-paste', values: string[]): void
 }
 
 defineProps<Props>()
@@ -45,6 +46,39 @@ const handleKeydown = (event: KeyboardEvent) => {
     emit('delete')
   }
 }
+
+// Parse clipboard text and extract numbers
+const parseClipboardNumbers = (text: string): string[] => {
+  // Split by newlines and tabs (spreadsheet copy format)
+  const parts = text.split(/[\n\t\r]+/).map(s => s.trim()).filter(Boolean)
+  
+  return parts
+    .map(part => {
+      // Strip currency symbols, thousand separators, spaces, and other non-numeric chars
+      // Keep only digits, decimal points, and minus signs
+      const cleaned = part.replace(/[^\d.,-]/g, '').replace(/,/g, '')
+      // Handle negative numbers and validate
+      const num = parseFloat(cleaned)
+      return isNaN(num) ? null : num.toString()
+    })
+    .filter((v): v is string => v !== null)
+}
+
+const handlePaste = (event: ClipboardEvent) => {
+  const text = event.clipboardData?.getData('text') || ''
+  const numbers = parseClipboardNumbers(text)
+  
+  // If multiple numbers found, handle as bulk paste
+  if (numbers.length > 1) {
+    event.preventDefault()
+    emit('bulk-paste', numbers)
+  }
+  // Single number: let default paste behavior handle it (after cleaning)
+  else if (numbers.length === 1) {
+    event.preventDefault()
+    emit('update:value', numbers[0])
+  }
+}
 </script>
 
 <template>
@@ -58,6 +92,7 @@ const handleKeydown = (event: KeyboardEvent) => {
           class="text-2xl font-bold price-input my-1"
           @update:model-value="emit('update:value', $event)"
           @keydown="handleKeydown"
+          @paste="handlePaste"
         />
         
         <!-- Multipliers Inside Input (Block End) -->
