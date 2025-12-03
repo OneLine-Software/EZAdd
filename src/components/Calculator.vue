@@ -116,6 +116,19 @@ const updateMultiplier = (index: number, multiplier: number) => {
   prices.value[index].multiplier = multiplier
 }
 
+const handleBulkPaste = (index: number, values: string[]) => {
+  // First value goes into current entry
+  prices.value[index].value = values[0]
+  // Rest create new entries
+  const newEntries = values.slice(1).map(value => ({
+    id: nextPriceId++,
+    value,
+    multiplier: 1
+  }))
+  prices.value.splice(index + 1, 0, ...newEntries)
+  success(`Pasted ${values.length} entries`)
+}
+
 const addTax = (tax: Omit<TaxEntry, 'id'>) => {
   taxes.value.push({
     id: nextTaxId++,
@@ -242,6 +255,7 @@ onUnmounted(() => {
             @update:multiplier="updateMultiplier(index, $event)"
             @delete="removeEntry(index)"
             @add-entry="addEntry"
+            @bulk-paste="handleBulkPaste(index, $event)"
           />
         </TransitionGroup>
         
