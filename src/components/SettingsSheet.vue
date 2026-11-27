@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Settings: the theme, its accent, light or dark, the currency, then feedback, shortcuts and who made it.
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { Github, Coffee } from 'lucide-vue-next'
 import { useScreen } from '@/composables/useScreen'
 import { HUES, type Look } from '@/composables/useBasket'
@@ -23,6 +23,15 @@ const hue = computed({
   get: () => settings.value.hues[settings.value.look],
   set: (v: number) => (settings.value.hues[settings.value.look] = v),
 })
+// The new look opens out from the button that was pressed, where the browser can do that.
+const swap = (e: MouseEvent, change: () => void) => {
+  const doc = document as Document & { startViewTransition?: (cb: () => Promise<void> | void) => unknown }
+  if (!doc.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return change()
+  const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  document.documentElement.style.setProperty('--vt-x', `${r.left + r.width / 2}px`)
+  document.documentElement.style.setProperty('--vt-y', `${r.top + r.height / 2}px`)
+  doc.startViewTransition(async () => { change(); await nextTick() })
+}
 const isOwn = computed(() => hue.value === HUES[settings.value.look])
 
 // Feedback goes to the app's own small API (Cloudflare Pages Functions).
@@ -55,7 +64,7 @@ const send = async () => {
   <section>
     <h3>Theme</h3>
     <div class="set-looks" role="group" aria-label="Theme">
-      <button v-for="l in LOOKS" :key="l.key" type="button" class="set-look" :data-look-chip="l.key" :aria-pressed="settings.look === l.key" @click="settings.look = l.key">
+      <button v-for="l in LOOKS" :key="l.key" type="button" class="set-look" :data-look-chip="l.key" :aria-pressed="settings.look === l.key" @click="swap($event, () => (settings.look = l.key))">
         <i aria-hidden="true"><b>12</b></i>
         <span><strong>{{ l.name }}</strong><small>{{ l.line }}</small></span>
       </button>
@@ -75,7 +84,7 @@ const send = async () => {
   <section>
     <h3>Light or dark</h3>
     <div class="row" role="group" aria-label="Light or dark">
-      <button v-for="m in (['system', 'light', 'dark'] as const)" :key="m" type="button" class="btn" :class="{ 'is-on': settings.theme === m }" :aria-pressed="settings.theme === m" @click="settings.theme = m">
+      <button v-for="m in (['system', 'light', 'dark'] as const)" :key="m" type="button" class="btn" :class="{ 'is-on': settings.theme === m }" :aria-pressed="settings.theme === m" @click="swap($event, () => (settings.theme = m))">
         {{ m === 'system' ? 'Follow the device' : m === 'light' ? 'Light' : 'Dark' }}
       </button>
     </div>

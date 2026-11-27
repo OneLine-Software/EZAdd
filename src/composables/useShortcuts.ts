@@ -32,6 +32,8 @@ export function useShortcuts() {
     else if (e.shiftKey && key === 's') { e.preventDefault(); if (s.basket.value.people > 1) s.copy('share') }
     else if (key === 'n') { e.preventDefault(); s.add() }
     else if (key === 't') { e.preventDefault(); s.sheet.value = 'tax' }
+    else if (key === 'h') { e.preventDefault(); s.sheet.value = 'share' }
+    else if (key === 'm') { e.preventDefault(); s.sheet.value = 'currency' }
     else if (key === 'u') { e.preventDefault(); s.undo.value?.run() }
     else if (key === ',') { e.preventDefault(); s.sheet.value = 'settings' }
     else if (key === 's') {
@@ -48,6 +50,8 @@ export const SHORTCUTS: [string, string][] = [
   ['Enter', 'Next item, while typing a price'],
   ['N', 'New item'],
   ['T', 'Taxes and fees'],
+  ['M', 'Currency'],
+  ['H', 'Share'],
   ['S then 2 to 9', 'Split between that many'],
   ['Shift C', 'Copy the total'],
   ['Shift S', 'Copy one share'],

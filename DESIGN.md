@@ -68,6 +68,19 @@ The total sets `--chars` to its length, and its size is worked out from the widt
 - `calc`: keys travel down 4px, with a short vibration where the phone allows.
 - Rolling digits on the total in `accent` and `sticker`.
 
+Shared motion, the same in every theme:
+
+- A theme opens with its items arriving one after another (the `is-fresh` class on the root, for about a second). After that a new item arrives at once.
+- Changing theme or mode opens the new look out from the button that was pressed (View Transitions, where the browser has them).
+- A sheet rises from the bottom in the theme's own way: a soft overshoot in `accent` and `sticker`, steps in `till`. Its contents follow, top first.
+- A changed quantity gives a small jump (`.bump`), an added tax pops in, and the total answers when it is copied.
+- The undo bar shows how long it will stay.
+
+## Keyboard
+
+- **Phone.** While a price is being typed, a bar sits on top of the keyboard with the total, the quantity and **Next** (`KeyBar.vue`). The iOS number pad has no return key, so this is how a new line starts without leaving the keys. The calculator theme has its own keys and does not show it.
+- **Desk.** Each shortcut is printed on the button it presses (`Kbd.vue`), and only where there is a mouse and a keyboard. The full list is in Settings.
+
 ## Always
 
 - 44px touch targets, or a 44px hit area around a smaller shape.

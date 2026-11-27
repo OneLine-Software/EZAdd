@@ -5,9 +5,10 @@ import { Settings } from 'lucide-vue-next'
 import { useScreen } from '@/composables/useScreen'
 import Flag from '@/components/Flag.vue'
 import Credit from '@/components/Credit.vue'
+import Kbd from '@/components/Kbd.vue'
 
 const s = useScreen()
-const { basket, sums, shares, things, root, fmt, plain, taxText, active, sheet, settings } = s
+const { basket, sums, shares, things, root, fmt, plain, taxText, active, sheet, settings, copied } = s
 const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 // A barcode drawn from the total, so it changes with the basket and is never a stock picture.
 const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 104729).padEnd(18, '3')].map((d) => 1 + (Number(d) % 4)))
@@ -22,8 +23,8 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
         <path d="M15 33h18" stroke="var(--ink)" stroke-width="2.5" stroke-dasharray="3 2.5" />
       </svg>
       <h1>EZ<b>+</b>ADD</h1>
-      <button type="button" aria-label="Currency" @click="sheet = 'currency'"><Flag :code="s.flagOf(settings.currency)" /> {{ settings.currency }}</button>
-      <button type="button" aria-label="Settings" @click="sheet = 'settings'"><Settings :size="18" /></button>
+      <button type="button" aria-label="Currency" @click="sheet = 'currency'"><Flag :code="s.flagOf(settings.currency)" /> {{ settings.currency }}<Kbd k="M" /></button>
+      <button type="button" aria-label="Settings" title="Settings ( , )" @click="sheet = 'settings'"><Settings :size="18" /></button>
     </header>
     <div class="tl-slot" aria-hidden="true" />
 
@@ -34,8 +35,8 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
           <small>{{ today }} · {{ things }}</small>
         </div>
 
-        <TransitionGroup tag="ul" name="tl-line" class="tl-lines">
-          <li v-for="(item, i) in basket.items" :key="item.id" :class="{ 'is-active': active === item.id }">
+        <TransitionGroup tag="ul" name="tl-line" class="tl-lines" appear>
+          <li v-for="(item, i) in basket.items" :key="item.id" :class="{ 'is-active': active === item.id }" :style="{ '--i': i }">
             <div class="tl-row">
               <input v-model="item.name" class="tl-name" :placeholder="`Item ${i + 1}`" :aria-label="`Name of item ${i + 1}`" :size="Math.max(7, (item.name || `Item ${i + 1}`).length + 1)" maxlength="40" @focus="active = item.id" />
               <i class="tl-dots" />
@@ -63,11 +64,11 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
         <p v-for="(t, i) in basket.taxes" :key="t.id" class="tl-row tl-plain">
           <button type="button" :aria-label="`Remove ${t.label}`" @click="s.removeTax(t.id)">{{ taxText(t) }} ×</button><i class="tl-dots" /><span>{{ plain(sums.taxes[i]) }}</span>
         </p>
-        <button type="button" class="tl-link" @click="sheet = 'tax'">+ Tax or fee</button>
+        <button type="button" class="tl-link" @click="sheet = 'tax'">+ Tax or fee<Kbd k="T" /></button>
 
-        <button type="button" class="tl-total" :style="{ '--chars': fmt(sums.total).length }" aria-live="polite" title="Copy the total" @click="s.copy('total')"><span>Total</span><strong>{{ fmt(sums.total) }}</strong></button>
+        <button type="button" class="tl-total" :class="{ 'is-copied': copied === 'total' }" :style="{ '--chars': fmt(sums.total).length }" aria-live="polite" title="Copy the total" @click="s.copy('total')"><span>Total <Kbd k="⇧C" /></span><strong>{{ fmt(sums.total) }}</strong></button>
         <p class="tl-row tl-plain tl-split">
-          <span>Split by</span>
+          <span>Split by <Kbd k="S 2–9" /></span>
           <button type="button" aria-label="One person fewer" @click="s.people(-1)">−</button><b>{{ basket.people }}</b><button type="button" aria-label="One person more" @click="s.people(1)">+</button>
           <i class="tl-dots" /><span v-if="basket.people > 1">{{ fmt(shares[0]) }} each</span>
         </p>
@@ -79,9 +80,9 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
     </main>
 
     <footer class="tl-foot">
-      <button type="button" @click="s.clear()">Clear</button>
-      <button type="button" @click="sheet = 'share'">Share</button>
-      <button type="button" class="tl-feed" @click="s.add()">+ Add a line</button>
+      <button type="button" @click="s.clear()">Clear<Kbd k="⇧⌫" /></button>
+      <button type="button" @click="sheet = 'share'">Share<Kbd k="H" /></button>
+      <button type="button" class="tl-feed" @click="s.add()">+ Add a line<Kbd k="N" /></button>
     </footer>
   </div>
 </template>
@@ -132,9 +133,19 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
 .tl-thanks { margin: 0 0 18px; text-align: center; text-transform: none; font: italic 400 1.4rem/1.2 'Instrument Serif', serif; color: var(--acc); }
 .tl .credit { display: flex; font-size: 0.68rem; }
 .tl-foot { display: flex; gap: 10px; padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--case); }
-.tl-foot button { flex: 1; min-height: 48px; border-radius: 6px; background: var(--case-key); color: var(--on-case); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; box-shadow: 0 4px 0 #000; transition: transform 100ms steps(2), box-shadow 100ms steps(2); }
+.tl-foot button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 48px; border-radius: 6px; background: var(--case-key); color: var(--on-case); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; box-shadow: 0 4px 0 #000; transition: transform 100ms steps(2), box-shadow 100ms steps(2); }
 .tl-foot button:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; }
 .tl-foot .tl-feed { flex: 2.2; background: var(--acc); color: var(--on-acc); }
+/* The slip feeds out of the slot when the theme opens, and the total is stamped when it is copied. */
+.is-fresh .tl-paper { animation: tl-feed 720ms steps(12) both; }
+@keyframes tl-feed { from { transform: translateY(-55%); } }
+.is-fresh .tl-line-enter-active { transition-delay: calc(120ms + var(--i, 0) * 70ms); }
+.tl-total.is-copied strong { animation: tl-stamp 320ms steps(3); }
+@keyframes tl-stamp { 0% { transform: scale(1.12); color: var(--acc); } }
+.tl-plain:has(button) { animation: tl-print 280ms steps(4) both; }
+@keyframes tl-print { from { opacity: 0; transform: translateY(-10px); } }
+.tl-sub { animation: tl-print 200ms steps(3) both; }
+.tl-bars i { transition: width 240ms steps(3), margin 240ms steps(3); }
 /* Printing: a new line feeds out in steps, the way a thermal printer moves paper. */
 .tl-line-enter-active { transition: transform 360ms steps(6), opacity 120ms; }
 .tl-line-leave-active { transition: opacity 160ms; }

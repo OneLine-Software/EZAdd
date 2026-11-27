@@ -64,7 +64,41 @@ const defaults = (): Settings => ({
 const settings = isDemo
   ? ref<Settings>({ ...defaults(), currency: 'AED', country: 'AE', place: null })
   : useLocalStorage<Settings>('ezadd.settings', defaults(), { mergeDefaults: true })
-settings.value.hues = { ...HUES, ...settings.value.hues }
+// What was saved may be from an older version, or damaged. Anything that does not fit goes back to its default.
+{
+  const s = settings.value
+  const d = defaults()
+  if (!(s.look in HUES)) s.look = d.look
+  const hues = { ...HUES }
+  for (const k of Object.keys(HUES) as Look[]) {
+    const h = Number((s.hues as Record<string, unknown> | null)?.[k])
+    if (Number.isFinite(h)) hues[k] = ((Math.round(h) % 360) + 360) % 360
+  }
+  s.hues = hues
+  if (!['system', 'light', 'dark'].includes(s.theme)) s.theme = 'system'
+  let money = typeof s.currency === 'string' && /^[A-Z]{3}$/.test(s.currency)
+  if (money) try { new Intl.NumberFormat('en', { style: 'currency', currency: s.currency }) } catch { money = false }
+  if (!money) s.currency = d.currency
+  if (typeof s.country !== 'string') s.country = null
+  if (typeof s.place !== 'string') s.place = null
+  s.myTaxes = (Array.isArray(s.myTaxes) ? s.myTaxes : [])
+    .filter((t) => t && typeof t.label === 'string' && (t.type === 'percentage' || t.type === 'flat'))
+    .map((t) => ({ type: t.type, value: String(t.value ?? ''), label: t.label.slice(0, 40) }))
+    .slice(0, 30)
+}
+{
+  const b = basket.value
+  const items = (Array.isArray(b?.items) ? b.items : []).filter((i) => i && Number.isFinite(i.id))
+    .map((i) => ({ id: i.id, name: String(i.name ?? '').slice(0, 80), value: String(i.value ?? '').replace(/[^\d.,-]/g, '').slice(0, 16), qty: Math.min(999, Math.max(0.5, Number(i.qty) || 1)) }))
+  const taxes = (Array.isArray(b?.taxes) ? b.taxes : []).filter((t) => t && Number.isFinite(t.id) && (t.type === 'percentage' || t.type === 'flat'))
+    .map((t) => ({ id: t.id, type: t.type, value: String(t.value ?? ''), label: String(t.label ?? '').slice(0, 40) }))
+  const top = Math.max(0, ...items.map((i) => i.id), ...taxes.map((t) => t.id))
+  basket.value = {
+    items, taxes,
+    people: Math.min(20, Math.max(1, Math.floor(Number(b?.people) || 1))),
+    nextId: Math.max(Number(b?.nextId) || 0, top + 1),
+  }
+}
 // For screenshots and the demo video: ?demo&look=till&theme=dark opens that theme without saving it.
 if (isDemo) {
   const look = params.get('look') as Look | null

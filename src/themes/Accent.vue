@@ -7,9 +7,10 @@ import RollDigits from '@/components/RollDigits.vue'
 import Mark from '@/components/Mark.vue'
 import Flag from '@/components/Flag.vue'
 import Credit from '@/components/Credit.vue'
+import Kbd from '@/components/Kbd.vue'
 
 const s = useScreen()
-const { basket, sums, shares, things, root, fmt, taxText, settings, sheet } = s
+const { basket, sums, shares, things, root, fmt, taxText, settings, sheet, copied } = s
 
 const SHAPES = ['44px 64px 52px 72px / 60px 48px 68px 50px', '68px 46px 70px 50px / 48px 66px 52px 64px', '52px 72px 46px 62px / 70px 52px 60px 46px']
 const shape = ref(0)
@@ -21,25 +22,25 @@ watch(() => sums.value.total, () => (shape.value = (shape.value + 1) % SHAPES.le
     <header class="ac-head">
       <Mark class="ac-mark" />
       <h1>ezadd</h1>
-      <button type="button" class="ac-chip" aria-label="Currency" @click="sheet = 'currency'"><Flag :code="s.flagOf(settings.currency)" /> {{ settings.currency }}</button>
-      <button type="button" class="ac-icon" aria-label="Settings" @click="sheet = 'settings'"><Settings :size="22" /></button>
+      <button type="button" class="ac-chip" aria-label="Currency" @click="sheet = 'currency'"><Flag :code="s.flagOf(settings.currency)" /> {{ settings.currency }}<Kbd k="M" /></button>
+      <button type="button" class="ac-icon" aria-label="Settings" title="Settings ( , )" @click="sheet = 'settings'"><Settings :size="22" /></button>
     </header>
 
     <section class="ac-hero" :style="{ '--chars': fmt(sums.total).length }">
       <i class="ac-blob" :style="{ borderRadius: SHAPES[shape] }" aria-hidden="true" />
-      <small>total · {{ things }}</small>
-      <button type="button" class="ac-total" aria-live="polite" title="Copy the total" @click="s.copy('total')"><RollDigits :text="fmt(sums.total)" /></button>
+      <small>total · {{ things }} <Kbd k="⇧C copies" /></small>
+      <button type="button" class="ac-total" :class="{ 'is-copied': copied === 'total' }" aria-live="polite" title="Copy the total" @click="s.copy('total')"><RollDigits :text="fmt(sums.total)" /></button>
       <div class="ac-split">
         <button type="button" aria-label="One person fewer" @click="s.people(-1)">−</button>
-        <span>{{ basket.people === 1 ? 'just me' : `split by ${basket.people}` }}</span>
+        <span>{{ basket.people === 1 ? 'just me' : `split by ${basket.people}` }} <Kbd k="S 2–9" /></span>
         <button type="button" aria-label="One person more" @click="s.people(1)">+</button>
         <b v-if="basket.people > 1">{{ fmt(shares[0]) }} each</b>
       </div>
     </section>
 
     <main class="ac-main">
-      <TransitionGroup tag="ul" name="ac-item" class="ac-list">
-        <li v-for="(item, i) in basket.items" :key="item.id">
+      <TransitionGroup tag="ul" name="ac-item" class="ac-list" appear>
+        <li v-for="(item, i) in basket.items" :key="item.id" :style="{ '--i': i }">
           <input v-model="item.name" class="ac-name" :placeholder="`item ${i + 1}`" :aria-label="`Name of item ${i + 1}`" maxlength="40" />
           <input
             class="ac-price" :style="{ width: Math.min(6, Math.max(3.8, item.value.length * 0.62 + 0.3)) + 'em' }" inputmode="decimal" placeholder="0.00" :value="item.value" :data-price="item.id" :aria-label="`Price of item ${i + 1}`"
@@ -47,7 +48,7 @@ watch(() => sums.value.total, () => (shape.value = (shape.value + 1) % SHAPES.le
           />
           <div class="ac-qty">
             <button type="button" :aria-label="`One fewer of item ${i + 1}`" @click="s.setQty(item.id, item.qty - 1)">−</button>
-            <b>{{ item.qty }}</b>
+            <b :key="item.qty" class="bump">{{ item.qty }}</b>
             <button type="button" :aria-label="`One more of item ${i + 1}`" @click="s.setQty(item.id, item.qty + 1)">+</button>
           </div>
           <button type="button" class="ac-del" :aria-label="`Remove item ${i + 1}`" @click="s.removeItem(item.id)">×</button>
@@ -55,14 +56,14 @@ watch(() => sums.value.total, () => (shape.value = (shape.value + 1) % SHAPES.le
       </TransitionGroup>
       <div class="ac-chips">
         <button v-for="t in basket.taxes" :key="t.id" type="button" class="ac-chip ac-chip-on" :aria-label="`Remove ${t.label}`" @click="s.removeTax(t.id)">{{ taxText(t) }} ×</button>
-        <button type="button" class="ac-chip" @click="sheet = 'tax'">+ tax or fee</button>
-        <button type="button" class="ac-chip" @click="sheet = 'share'">share</button>
-        <button type="button" class="ac-chip" @click="s.clear()">clear</button>
+        <button type="button" class="ac-chip" @click="sheet = 'tax'">+ tax or fee<Kbd k="T" /></button>
+        <button type="button" class="ac-chip" @click="sheet = 'share'">share<Kbd k="H" /></button>
+        <button type="button" class="ac-chip" @click="s.clear()">clear<Kbd k="⇧⌫" /></button>
       </div>
       <Credit />
     </main>
 
-    <button type="button" class="ac-fab" aria-label="Add an item" @click="s.add()"><span>+</span></button>
+    <button type="button" class="ac-fab" aria-label="Add an item" @click="s.add()"><span>+</span><Kbd k="N" /></button>
   </div>
 </template>
 
@@ -102,6 +103,14 @@ watch(() => sums.value.total, () => (shape.value = (shape.value + 1) % SHAPES.le
 .ac-chip-on { background: var(--ink) !important; color: var(--bg); }
 .ac-fab { position: absolute; right: 18px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: 68px; height: 68px; border-radius: 46% 54% 52% 48% / 52% 46% 54% 48%; background: var(--ink) !important; color: var(--bg); font-size: 2.2rem; font-weight: 500; line-height: 1; box-shadow: 0 10px 24px #0003; transition: transform 260ms var(--squish), border-radius 400ms var(--squish); }
 .ac-fab:active { transform: scale(1.14, 0.84); border-radius: 54% 46% 44% 56% / 44% 56% 46% 54%; }
+.ac-fab .kbd { position: absolute; top: -4px; right: -4px; margin: 0; font-size: 0.7rem; background: var(--bg); color: var(--ink); opacity: 1; }
+.ac-total.is-copied { animation: ac-copied 520ms var(--squish); }
+@keyframes ac-copied { 30% { transform: scale(0.94, 1.06); } 60% { transform: scale(1.05, 0.96); } }
+.ac-chip-on { animation: pop-in 420ms var(--squish) both; }
+.is-fresh .ac-item-enter-active { transition-delay: calc(var(--i, 0) * 60ms); }
+.is-fresh .ac-hero { animation: ac-land 700ms var(--squish) both; }
+@keyframes ac-land { from { opacity: 0; transform: scale(0.8, 0.9) translateY(-14px); } }
+.is-fresh .ac-fab { animation: pop-in 600ms var(--squish) 380ms both; }
 .ac-fab span { display: block; transition: transform 300ms var(--squish); }
 .ac-fab:active span { transform: rotate(90deg); }
 /* An item drops in and lands soft; it squashes on the way out. Bounce is this theme's signature (DESIGN.md). */

@@ -5,6 +5,7 @@ import { Settings } from 'lucide-vue-next'
 import { useScreen } from '@/composables/useScreen'
 import Flag from '@/components/Flag.vue'
 import Credit from '@/components/Credit.vue'
+import Kbd from '@/components/Kbd.vue'
 
 const s = useScreen()
 const { basket, sums, shares, root, fmt, plain, taxText, active, sheet, settings, copied } = s
@@ -51,7 +52,7 @@ const split = () => { tick(); basket.value.people = basket.value.people >= 6 ? 1
         <h1>EZAdd <small>EZ-74</small></h1>
         <i class="ca-solar" aria-hidden="true" />
         <button type="button" class="ca-cur" aria-label="Currency" @click="sheet = 'currency'"><Flag :code="s.flagOf(settings.currency)" /> {{ settings.currency }}</button>
-        <button type="button" class="ca-cur ca-set" aria-label="Settings" @click="sheet = 'settings'"><Settings :size="18" /></button>
+        <button type="button" class="ca-cur ca-set" aria-label="Settings" title="Settings ( , )" @click="sheet = 'settings'"><Settings :size="18" /></button>
       </header>
 
       <button type="button" class="ca-lcd" :style="{ '--chars': fmt(sums.total).length }" aria-live="polite" title="Copy the total" @click="s.copy('total')">
@@ -60,15 +61,15 @@ const split = () => { tick(); basket.value.people = basket.value.people >= 6 ? 1
           <span v-if="basket.taxes.length">TAX {{ plain(sums.taxTotal) }}</span>
           <span v-if="basket.people > 1">÷{{ basket.people }} = {{ plain(shares[0]) }}</span>
         </span>
-        <output>{{ fmt(sums.total) }}</output>
+        <output :key="sums.total" :class="{ 'is-copied': copied === 'total' }">{{ fmt(sums.total) }}</output>
       </button>
 
       <section class="ca-tape" aria-label="Basket">
-        <TransitionGroup tag="ul" name="ca-line">
-          <li v-for="(item, i) in basket.items" :key="item.id" :aria-current="item.id === current?.id" @click="active = item.id">
+        <TransitionGroup tag="ul" name="ca-line" appear>
+          <li v-for="(item, i) in basket.items" :key="item.id" :style="{ '--i': i }" :aria-current="item.id === current?.id" @click="active = item.id">
             <span class="ca-n">{{ String(i + 1).padStart(2, '0') }}</span>
             <input v-model="item.name" class="ca-name" :placeholder="`item ${i + 1}`" :aria-label="`Name of item ${i + 1}`" maxlength="40" @focus="active = item.id" />
-            <span v-if="item.qty !== 1" class="ca-x">×{{ item.qty }}</span>
+            <span v-if="item.qty !== 1" :key="item.qty" class="ca-x bump">×{{ item.qty }}</span>
             <input
               class="ca-price" inputmode="none" placeholder="0.00" :value="item.value" :data-price="item.id" :aria-label="`Price of item ${i + 1}`"
               @focus="active = item.id" @input="s.onInput($event, item)" @keydown="s.onKey($event, item)" @paste="s.onPaste($event, item)"
@@ -83,10 +84,10 @@ const split = () => { tick(); basket.value.people = basket.value.people >= 6 ? 1
       </section>
 
       <section class="ca-keys" aria-label="Keys">
-        <button type="button" class="ca-fn" aria-label="Clear the basket" @click="s.clear()">C</button>
-        <button type="button" class="ca-fn" @click="sheet = 'tax'">TAX</button>
+        <button type="button" class="ca-fn" aria-label="Clear the basket" @click="s.clear()">C<Kbd k="⇧⌫" /></button>
+        <button type="button" class="ca-fn" @click="sheet = 'tax'">TAX<Kbd k="T" /></button>
         <button type="button" class="ca-fn" aria-label="Split between more people" @click="split()">÷{{ basket.people > 1 ? basket.people : '' }}</button>
-        <button type="button" class="ca-fn" @click="sheet = 'share'">{{ copied === 'receipt' || copied === 'link' ? 'OK' : 'SHARE' }}</button>
+        <button type="button" class="ca-fn" @click="sheet = 'share'"><Kbd k="H" />{{ copied === 'receipt' || copied === 'link' ? 'OK' : 'SHARE' }}</button>
         <button v-for="k in ['7', '8', '9']" :key="k" type="button" @click="type(k)">{{ k }}</button>
         <button type="button" class="ca-fn" aria-label="Delete a digit" @click="back()">⌫</button>
         <button v-for="k in ['4', '5', '6']" :key="k" type="button" @click="type(k)">{{ k }}</button>
@@ -95,7 +96,7 @@ const split = () => { tick(); basket.value.people = basket.value.people >= 6 ? 1
         <button type="button" class="ca-fn" aria-label="One fewer of this item" @click="qty(-1)">×<sup>−</sup></button>
         <button type="button" @click="type('0')">0</button>
         <button type="button" @click="type('.')">.</button>
-        <button type="button" class="ca-plus" aria-label="Next item" @click="next()">+</button>
+        <button type="button" class="ca-plus" aria-label="Next item" @click="next()">+<Kbd k="Enter" /></button>
       </section>
     </div>
   </div>
@@ -138,6 +139,23 @@ const split = () => { tick(); basket.value.people = basket.value.people >= 6 ? 1
 .ca-keys .ca-fn:nth-child(n + 5) { font-size: 1.2rem; }
 .ca-keys .ca-plus { grid-column: span 2; background: var(--acc); color: var(--on-acc); font-size: 1.8rem; box-shadow: 0 5px 0 var(--acc-edge); }
 .ca-keys .ca-plus:active { box-shadow: 0 1px 0 var(--acc-edge); }
+/* The screen refreshes like an LCD: a new total blinks in, and the device switches on when the theme opens. */
+.ca-lcd output { animation: ca-refresh 160ms steps(2); }
+@keyframes ca-refresh { from { opacity: 0.25; } }
+.ca-lcd output.is-copied { animation: ca-blink 480ms steps(1) 1; }
+@keyframes ca-blink { 0%, 50% { opacity: 0.2; } 25%, 75% { opacity: 1; } }
+.is-fresh .ca-lcd { animation: ca-on 700ms steps(5) both; }
+@keyframes ca-on { from { filter: brightness(0.45) saturate(0.3); } }
+.is-fresh .ca-keys button { animation: ca-keys 420ms var(--ease-out) both; }
+.is-fresh .ca-keys button:nth-child(n + 5) { animation-delay: 50ms; }
+.is-fresh .ca-keys button:nth-child(n + 9) { animation-delay: 100ms; }
+.is-fresh .ca-keys button:nth-child(n + 13) { animation-delay: 150ms; }
+.is-fresh .ca-keys button:nth-child(n + 17) { animation-delay: 200ms; }
+@keyframes ca-keys { from { opacity: 0; transform: translateY(10px); } }
+.is-fresh .ca-line-enter-active { transition-delay: calc(var(--i, 0) * 50ms); }
+.ca-taxline button { animation: pop-in 240ms var(--ease-out) both; }
+.ca-keys button { position: relative; }
+.ca-keys .kbd { position: absolute; top: 4px; right: 5px; font-size: 0.55rem; }
 .ca-line-enter-active { transition: opacity 160ms, transform 200ms var(--ease-out); }
 .ca-line-leave-active { transition: opacity 120ms; }
 .ca-line-enter-from { opacity: 0; transform: translateY(8px); }

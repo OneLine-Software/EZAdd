@@ -19,6 +19,8 @@ watch(sheet, async (now, before) => {
     await nextTick()
     panel.value?.querySelector<HTMLElement>('[data-autofocus], .sheet-body button, .sheet-body input')?.focus({ preventScroll: true })
   } else {
+    // Leave the closing sheet at once, so a shortcut pressed while it slides away still works.
+    if (panel.value?.contains(document.activeElement)) (document.activeElement as HTMLElement).blur()
     opener?.focus?.({ preventScroll: true })
   }
 })

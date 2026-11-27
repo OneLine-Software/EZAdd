@@ -38,7 +38,8 @@ export function useScreen() {
   }
   const onInput = (e: Event, item: Item) => {
     const el = e.target as HTMLInputElement
-    const clean = el.value.replace(/[^\d.,-]/g, '')
+    // Digits and separators only, and a minus only in front.
+    const clean = el.value.replace(/[^\d.,-]/g, '').replace(/(?!^)-/g, '')
     if (clean !== el.value) el.value = clean
     item.value = clean
   }
