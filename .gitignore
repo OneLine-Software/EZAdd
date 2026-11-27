@@ -26,4 +26,4 @@ dist-ssr
 # Wrangler
 .wrangler/
 .dev.vars
-dist-lab
+public/flags

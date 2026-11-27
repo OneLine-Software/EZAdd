@@ -15,13 +15,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'EZAdd - Quick Addition Calculator',
+        name: 'EZAdd',
         short_name: 'EZAdd',
-        description: 'Mobile-first addition calculator with multipliers, taxes, and dark mode',
-        theme_color: '#000000',
-        background_color: '#ffffff',
+        description: 'Add up a basket before you reach the till: prices, quantities, taxes, any currency, split between friends.',
+        theme_color: '#0b0b0c',
+        background_color: '#0b0b0c',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -36,31 +36,24 @@ export default defineConfig({
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'pwa-maskable-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ]
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // About 250 flags: kept out of the first download and cached as each one is shown.
+        globIgnores: ['flags/**'],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname.startsWith('/flags/'),
             handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
+            options: { cacheName: 'flags', expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 } }
           },
           {
             urlPattern: ({ url }) => url.origin === self.location.origin,

@@ -1,7 +1,7 @@
 # EZAdd
 
 What the product is, who it is for and what it must keep doing. `DESIGN.md` says how it looks
-(written once a direction is picked from the lab, LAB-74), `MOTION.md` how it may move.
+(four themes on one set of names, LAB-74), `MOTION.md` how it may move.
 
 ## Register
 

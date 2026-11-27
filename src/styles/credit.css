@@ -1,0 +1,162 @@
+/*
+ * Credit: OneLine's sign-off on a site it built. The same block on every site, drawn in that site's colours and type.
+ * It is the one place OneLine's mark appears on a client site: the mark's shape and the word "OneLine" only, never
+ * OneLine's purple, sand, gradient mark file or typefaces (studio-kit SKILL.md, "The OneLine credit").
+ *
+ * Reads the contract tokens (TOKENS.md: --primary, --accent, --ring, --dur-fast, --ease-out). Parameters, all optional,
+ * set on the .credit or any ancestor:
+ *   --credit-a       first colour of the name   (default --primary)
+ *   --credit-b       second colour of the name  (default --accent; set it equal to --credit-a for a flat name)
+ *   --credit-emblem  the emblem's colour        (default --accent)
+ *   --credit-weight  weight of the name         (default 700)
+ *
+ * Forms: `.credit` is the sentence, for the footer. `.credit.credit-pill` is the pill, for tight places: outline always
+ * on, one flat colour, no line. It reads "Concept by OneLine" on an unpublished concept and "Built by OneLine" on a live
+ * site whose client agreed to a credit.
+ * The line under the name draws once when the credit enters the viewport: put `rv` on the .credit (Reveal, type.ts).
+ * Only the line moves; the sentence itself does not fade. It is uncovered with clip-path rather than drawn with dashes,
+ * because the line is stretched to the word's width and dashes do not survive the stretch.
+ */
+
+.credit {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.credit-emblem {
+  display: inline-grid;
+  color: var(--credit-emblem, var(--accent));
+}
+.credit-emblem svg {
+  inline-size: 1.15em;
+  block-size: 1.15em;
+}
+
+/* The name: mark and word, a link to oneline.software. Kept left to right in every language, like a logo. */
+.credit-name {
+  --a: var(--credit-a, var(--primary));
+  --b: var(--credit-b, var(--accent));
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.3em 0.7em;
+  margin-inline: -0.3em;
+  border-radius: 999px;
+  direction: ltr;
+  unicode-bidi: isolate;
+  color: var(--a);
+  font-weight: var(--credit-weight, 700);
+  font-size: 1.1em;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+/* the outline (a gradient ring) and a faint tint, both shown on hover and focus */
+.credit-name::before,
+.credit-name::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--a), var(--b));
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+  pointer-events: none;
+}
+.credit-name::before {
+  padding: 1.5px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+.credit-name:hover::before,
+.credit-name:focus-visible::before {
+  opacity: 1;
+}
+.credit-name:hover::after,
+.credit-name:focus-visible::after {
+  opacity: 0.12;
+}
+.credit-name:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.credit-mark {
+  display: inline-grid;
+}
+.credit-mark svg {
+  inline-size: auto;
+  block-size: 1.15em;
+}
+.credit-word {
+  background: linear-gradient(90deg, var(--a), var(--b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The line under the word. Draws from the inline start of the page: mirrored on a right-to-left page. */
+.credit-line {
+  position: absolute;
+  inset-inline: 0.7em;
+  inset-block-end: 0.05em;
+  inline-size: calc(100% - 1.4em);
+  block-size: 0.4em;
+  overflow: visible;
+  pointer-events: none;
+}
+.credit-line path {
+  fill: none;
+  stroke: var(--b);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.75;
+}
+.credit:dir(rtl) .credit-line {
+  scale: -1 1;
+}
+/* the reveal: the sentence stays put, only the line is uncovered from its start */
+.js .credit.rv {
+  opacity: 1;
+  transform: none;
+}
+.js .credit.rv .credit-line {
+  clip-path: inset(-50% 100% -50% 0);
+  transition: clip-path var(--dur-reveal) var(--ease-out) 250ms;
+}
+.js .credit.rv.in .credit-line {
+  clip-path: inset(-50% -2% -50% 0);
+}
+
+/* The pill: for tight places. Outline always on, one flat colour, no line. */
+.credit-pill {
+  gap: 0.6em;
+}
+.credit-pill .credit-name {
+  margin: 0;
+  font-size: 1em;
+}
+.credit-pill .credit-name::before {
+  opacity: 1;
+  background: var(--a);
+}
+.credit-pill .credit-name::after {
+  background: var(--a);
+}
+.credit-pill .credit-name:hover::after,
+.credit-pill .credit-name:focus-visible::after {
+  opacity: 0.16;
+}
+.credit-pill .credit-word {
+  background: none;
+  color: var(--a);
+}
+.credit-pill .credit-line {
+  display: none;
+}

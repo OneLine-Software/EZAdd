@@ -1,0 +1,128 @@
+/*
+ * EZAdd's themes. Four looks, each in light and dark, on one set of names (DESIGN.md).
+ *
+ * The first block of each look is the contract the shared parts read (sheets, flags, scrollbars, the credit):
+ *   --bg --surface --well --ink --soft --line     grounds, text and hairlines
+ *   --acc --on-acc --acc-edge --acc-soft          the accent, built from --hue; the look fixes lightness and strength
+ *   --radius --radius-sm --bw --lift              shape: corners, border width, the shadow of a raised thing
+ *   --font-display --font-text --caps --track     type
+ * The lines after it are the look's own extras, read only by its screen in src/themes/.
+ * --hue comes from settings (one per look). Never write a literal accent colour in a component.
+ */
+@import 'tailwindcss';
+@import './fonts.css';
+@import './credit.css';
+@import './sheets.css';
+
+html, body, #app { height: 100%; }
+body { margin: 0; overscroll-behavior: none; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+
+.app {
+  --dur-fast: 150ms; --dur-base: 240ms; --dur-reveal: 900ms; --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --spring: cubic-bezier(0.3, 1.6, 0.5, 1);
+  --primary: var(--ink); --accent: var(--credit-ink, var(--ink)); --ring: var(--ink);
+  position: relative; height: var(--vvh, 100dvh); overflow: hidden; container: stage / size;
+  background: var(--bg); color: var(--ink); font-family: var(--font-text);
+}
+.app button { cursor: pointer; touch-action: manipulation; }
+.app input::placeholder, .app textarea::placeholder { color: var(--soft); opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .app { --dur-fast: 0.01ms; --dur-base: 0.01ms; --dur-reveal: 0.01ms; }
+  .app *, .app *::before, .app *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ---------- One accent: black, white and one colour ---------- */
+.app[data-look='accent'] {
+  --bg: #fff; --surface: #fff; --ink: #0b0b0c; --soft: #66666b; --line: #0b0b0c1f;
+  --acc: oklch(0.84 0.15 var(--hue)); --on-acc: #0b0b0c; --acc-edge: oklch(0.7 0.15 var(--hue)); --acc-soft: oklch(0.955 0.035 var(--hue));
+  --well: var(--acc-soft); --radius: 28px; --radius-sm: 999px; --bw: 0px; --lift: none;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif; --font-text: 'Bricolage Grotesque', system-ui, sans-serif; --caps: none; --track: -0.01em;
+  --squish: cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+.app[data-look='accent'][data-mode='dark'] {
+  --bg: #0b0b0c; --surface: #18181b; --ink: #f6f6f4; --soft: #a3a3a9; --line: #ffffff26; --acc-soft: oklch(0.27 0.05 var(--hue));
+}
+
+/* ---------- Till roll: one receipt ---------- */
+.app[data-look='till'] {
+  --bg: #d8d2c4; --surface: #fffdf6; --ink: #1f1c18; --soft: #6b655a; --line: #6b655a;
+  --acc: oklch(0.5 0.19 var(--hue)); --on-acc: #fff; --acc-edge: oklch(0.36 0.14 var(--hue)); --acc-soft: oklch(0.94 0.03 var(--hue));
+  --well: transparent; --radius: 0px; --radius-sm: 3px; --bw: 1.5px; --lift: none;
+  --font-display: 'Martian Mono', ui-monospace, monospace; --font-text: 'Martian Mono', ui-monospace, monospace; --caps: uppercase; --track: 0.06em;
+  --case: #24211e; --on-case: #f3eee2; --case-key: #3a3632; --shade: #0002;
+}
+.app[data-look='till'][data-mode='dark'] {
+  --bg: #0e0d0c; --surface: #1e1c19; --ink: #efe8d8; --soft: #a39b8b; --line: #a39b8b;
+  --acc: oklch(0.74 0.15 var(--hue)); --on-acc: #1e1c19; --acc-edge: oklch(0.5 0.14 var(--hue)); --acc-soft: oklch(0.3 0.05 var(--hue));
+  --case: #000; --shade: #0008;
+}
+
+/* ---------- Price sticker: sale colours ---------- */
+.app[data-look='sticker'] {
+  --bg: #fff3cf; --surface: #fff; --ink: #17153b; --soft: #55537c; --line: #17153b;
+  --acc: oklch(0.49 0.23 var(--hue)); --on-acc: #fff; --acc-edge: #17153b; --acc-soft: #ffd91a;
+  --well: #fff; --radius: 18px; --radius-sm: 12px; --bw: 2.5px; --lift: 4px 4px 0 var(--shadow);
+  --font-display: 'Lilita One', system-ui, sans-serif; --font-text: 'Nunito', system-ui, sans-serif; --caps: none; --track: 0;
+  --yellow: #ffd91a; --blue: #2447f9; --on-blue: #fff; --shadow: #17153b; --navy: #17153b;
+}
+.app[data-look='sticker'][data-mode='dark'] {
+  --bg: #17153b; --surface: #26225c; --ink: #fff6dc; --soft: #b7b3e0; --line: #fff6dc; --well: #1d1a4a;
+  --acc: oklch(0.49 0.23 var(--hue)); --shadow: #000; --blue: #7d93ff; --on-blue: #17153b; --acc-edge: #000;
+}
+
+/* ---------- Pocket calculator: a device ---------- */
+.app[data-look='calc'] {
+  --bg: #cdc6b4; --surface: #ebe5d5; --ink: #1d1b18; --soft: #686256; --line: #1d1b1826;
+  --acc: oklch(0.7 0.19 var(--hue)); --on-acc: #1d1b18; --acc-edge: oklch(0.48 0.16 var(--hue)); --acc-soft: oklch(0.9 0.06 var(--hue));
+  --well: #fffdf6; --radius: 20px; --radius-sm: 12px; --bw: 0px; --lift: 0 4px 0 var(--fn-edge);
+  --font-display: 'Space Grotesk', system-ui, sans-serif; --font-text: 'Space Grotesk', system-ui, sans-serif; --caps: none; --track: 0;
+  --lcd: #b7c6ab; --lcd-ink: #17231a; --tape: #fffdf6; --key: #34322f; --key-ink: #f6f1e4; --key-edge: #121110; --fn: #faf5e8; --fn-ink: #1d1b18; --fn-edge: #b5ad98;
+}
+.app[data-look='calc'][data-mode='dark'] {
+  --bg: #090908; --surface: #1e1d1b; --ink: #f2ecdf; --soft: #a39c8c; --line: #ffffff24; --well: #2a2825; --acc-soft: oklch(0.32 0.06 var(--hue));
+  --lcd: #a6b89b; --tape: #2a2825; --key: #45423e; --key-edge: #000; --fn: #2f2d2a; --fn-ink: #f2ecdf; --fn-edge: #000;
+}
+
+/* ---------- Scrollbars, one per look. iOS draws its own and ignores these. ---------- */
+@supports not selector(::-webkit-scrollbar) {
+  .app * { scrollbar-width: thin; scrollbar-color: var(--acc) transparent; }
+}
+@supports selector(::-webkit-scrollbar) {
+  .app ::-webkit-scrollbar { width: 12px; height: 12px; }
+  .app ::-webkit-scrollbar-track { background: transparent; }
+  .app ::-webkit-scrollbar-thumb { background: var(--acc); border: 3px solid transparent; background-clip: padding-box; border-radius: 999px; }
+  /* a strip of receipt paper with its perforation */
+  .app[data-look='till'] ::-webkit-scrollbar-thumb { border-radius: 0; border-width: 0 4px; background: repeating-linear-gradient(var(--ink) 0 4px, transparent 4px 7px) padding-box; }
+  /* a fat sticker */
+  .app[data-look='sticker'] ::-webkit-scrollbar { width: 16px; }
+  .app[data-look='sticker'] ::-webkit-scrollbar-thumb { background: var(--yellow); border: 2.5px solid var(--navy); border-radius: 8px; }
+  .app[data-look='sticker'][data-mode='dark'] ::-webkit-scrollbar-thumb { border-color: #000; }
+  /* a knurled wheel */
+  .app[data-look='calc'] ::-webkit-scrollbar { width: 14px; }
+  .app[data-look='calc'] ::-webkit-scrollbar-track { background: var(--line); border-radius: 4px; }
+  .app[data-look='calc'] ::-webkit-scrollbar-thumb { border: 0; border-radius: 4px; background: repeating-linear-gradient(var(--acc) 0 3px, var(--acc-edge) 3px 5px); }
+}
+
+/* ---------- Flags, fitted to each look ---------- */
+.flag { display: inline-grid; place-items: center; flex: none; width: 1.5em; aspect-ratio: 3 / 2; overflow: hidden; vertical-align: -0.2em; font-size: 1em; }
+.flag img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.flag-code { width: auto; aspect-ratio: auto; padding: 0 0.3em; font-size: 0.7em; font-weight: 700; letter-spacing: 0.04em; box-shadow: inset 0 0 0 1.5px currentColor; border-radius: 3px; }
+/* a coin */
+.app[data-look='accent'] .flag:not(.flag-code) { width: 1.3em; aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--line); }
+/* printed: one ink, no colour */
+.app[data-look='till'] .flag img { filter: grayscale(1) contrast(1.35); }
+.app[data-look='till'] .flag:not(.flag-code) { box-shadow: 0 0 0 1.5px var(--ink); }
+/* a little sticker, stuck on by hand */
+.app[data-look='sticker'] .flag:not(.flag-code) { border: 2px solid var(--navy); border-radius: 5px; transform: rotate(-5deg); box-shadow: 2px 2px 0 var(--shadow); width: 1.6em; }
+/* a badge on the case */
+.app[data-look='calc'] .flag:not(.flag-code) { border-radius: 3px; box-shadow: 0 2px 0 #0004; }
+
+/* ---------- The OneLine credit, in each look's colours and type ---------- */
+.app .credit { margin: 0; font-family: var(--font-text); font-size: 0.8125rem; color: var(--soft); text-transform: var(--caps); letter-spacing: var(--track); --credit-a: var(--ink); --credit-b: var(--ink); --credit-emblem: var(--credit-ink, var(--ink)); }
+.app .credit-word { text-transform: none; letter-spacing: -0.01em; }
+.app[data-look='accent'] .credit { --credit-emblem: var(--acc-edge); }
+.app[data-look='till'] .credit, .app[data-look='sticker'] .credit { --credit-emblem: var(--acc); }
+.app[data-look='sticker'][data-mode='dark'] .credit { --credit-emblem: var(--yellow); }
+.app[data-look='calc'] .credit { --credit-emblem: var(--acc-edge); }
+.app[data-look='calc'][data-mode='dark'] .credit { --credit-emblem: var(--acc); }
+.app[data-look='sticker'] .credit-name { font-family: var(--font-display); --credit-weight: 400; font-size: 1.25em; }

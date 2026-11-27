@@ -20,12 +20,19 @@ export interface SavedTax {
   label: string
 }
 
+export type Look = 'accent' | 'till' | 'sticker' | 'calc'
+
+/** Each theme's own colour: periwinkle, till red, sale red and calculator orange. */
+export const HUES: Record<Look, number> = { accent: 265, till: 30, sticker: 25, calc: 48 }
+
 export interface Settings {
   currency: string
   country: string | null
   place: string | null
-  /** The accent as a hue, 0 to 360. The look turns it into colours that stay readable. */
-  hue: number
+  /** Which of the four themes is on. */
+  look: Look
+  /** The accent of each theme as a hue, 0 to 360. The theme fixes how light and strong it is, so text on it stays readable. */
+  hues: Record<Look, number>
   theme: 'system' | 'light' | 'dark'
   myTaxes: SavedTax[]
 }
@@ -50,13 +57,23 @@ const guess = guessRegion()
 
 // In the demo nothing is read from or written to the device, so a visitor's own basket is left alone.
 const basket = isDemo ? ref<Basket>(demo()) : useLocalStorage<Basket>('ezadd.basket', empty(), { mergeDefaults: true })
+const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams()
+const defaults = (): Settings => ({
+  currency: guess.currency, country: guess.country, place: guess.place, look: 'accent', hues: { ...HUES }, theme: 'system', myTaxes: [],
+})
 const settings = isDemo
-  ? ref<Settings>({ currency: 'AED', country: 'AE', place: null, hue: 265, theme: 'system', myTaxes: [] })
-  : useLocalStorage<Settings>(
-      'ezadd.settings',
-      { currency: guess.currency, country: guess.country, place: guess.place, hue: 265, theme: 'system', myTaxes: [] },
-      { mergeDefaults: true },
-    )
+  ? ref<Settings>({ ...defaults(), currency: 'AED', country: 'AE', place: null })
+  : useLocalStorage<Settings>('ezadd.settings', defaults(), { mergeDefaults: true })
+settings.value.hues = { ...HUES, ...settings.value.hues }
+// For screenshots and the demo video: ?demo&look=till&theme=dark opens that theme without saving it.
+if (isDemo) {
+  const look = params.get('look') as Look | null
+  if (look && look in HUES) settings.value.look = look
+  const theme = params.get('theme')
+  if (theme === 'light' || theme === 'dark') settings.value.theme = theme
+  const currency = params.get('currency')
+  if (currency && /^[A-Z]{3}$/.test(currency)) settings.value.currency = currency
+}
 
 if (!basket.value.items?.length) basket.value = empty()
 
@@ -143,6 +160,11 @@ function addTax(tax: SavedTax, remember = false) {
   }
 }
 
+/** Adds it when it is not in the basket, takes it off when it is. Presets are matched by label and rate. */
+function hasTax(tax: SavedTax): Tax | undefined {
+  return basket.value.taxes.find((t) => t.label === tax.label && t.type === tax.type && Number(t.value) === Number(tax.value))
+}
+
 function removeTax(taxId: number) {
   const tax = basket.value.taxes.find((t) => t.id === taxId)
   if (tax) removing(`Removed ${tax.label}`, () => (basket.value.taxes = basket.value.taxes.filter((t) => t.id !== taxId)))
@@ -177,6 +199,51 @@ function receipt(): string {
   return out.join('\n')
 }
 
+/**
+ * The basket as a link. Everything is in the part after the #, which a browser never sends to a server,
+ * so sharing a basket stores nothing anywhere.
+ */
+function link(): string {
+  const b = basket.value
+  const data = {
+    c: settings.value.currency,
+    i: b.items.filter((i) => i.value !== '').map((i) => [i.name, i.value, i.qty]),
+    t: b.taxes.map((t) => [t.label, t.value, t.type === 'percentage' ? 1 : 0]),
+    p: b.people,
+  }
+  const bytes = new TextEncoder().encode(JSON.stringify(data))
+  const b64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  return `${location.origin}${location.pathname}#b=${b64}`
+}
+
+/** Opens a basket from a link. The basket that was there can be put back. */
+function openLink(hash: string): boolean {
+  const m = /^#b=([\w-]+)$/.exec(hash)
+  if (!m) return false
+  try {
+    const bin = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))
+    const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0))))
+    let n = 1
+    const items: Item[] = (data.i as unknown[][]).slice(0, 500).map(([name, value, qty]) => ({
+      id: n++, name: String(name ?? '').slice(0, 80), value: String(value ?? '').replace(/[^\d.,-]/g, '').slice(0, 16), qty: Math.min(999, Math.max(0.5, Number(qty) || 1)),
+    }))
+    const taxes: Tax[] = ((data.t ?? []) as unknown[][]).slice(0, 20).map(([label, value, pct]) => ({
+      id: n++, label: String(label ?? '').slice(0, 40), value: String(value ?? '').replace(/[^\d.,-]/g, '').slice(0, 16), type: pct ? 'percentage' : 'flat',
+    }))
+    if (!items.length) return false
+    removing('Opened a shared basket', () => {
+      basket.value = { items, taxes, people: Math.min(20, Math.max(1, Math.floor(Number(data.p) || 1))), nextId: n }
+    })
+    if (typeof data.c === 'string' && /^[A-Z]{3}$/.test(data.c)) settings.value.currency = data.c
+    return true
+  } catch {
+    return false
+  }
+}
+if (typeof location !== 'undefined' && openLink(location.hash)) {
+  history.replaceState(null, '', location.pathname + location.search)
+}
+
 // The theme follows the device unless the person picked one.
 const systemDark = ref(false)
 if (typeof window !== 'undefined' && window.matchMedia) {
@@ -193,7 +260,7 @@ export function useBasket() {
   return {
     basket, settings, isDemo, undo, dark,
     decimals, sums, shares, count,
-    addItem, removeItem, setQty, clear, paste, addTax, removeTax, forgetMyTax,
-    fmt, parts, plain, receipt,
+    addItem, removeItem, setQty, clear, paste, addTax, hasTax, removeTax, forgetMyTax,
+    fmt, parts, plain, receipt, link,
   }
 }

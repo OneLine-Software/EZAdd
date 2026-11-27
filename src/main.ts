@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import './styles/globals.css'
+import './styles/tokens.css'
 import App from './App.vue'
 import { registerSW } from 'virtual:pwa-register'
 
@@ -14,14 +14,14 @@ setTimeout(() => {
       console.log('New content available, please refresh.')
       // Dispatch custom event for toast
       window.dispatchEvent(new CustomEvent('pwa-update', { 
-        detail: { message: 'New version available! Refresh to update.' } 
+        detail: { message: 'A new version is ready. Reload to get it.' } 
       }))
     },
     onOfflineReady() {
       console.log('App ready to work offline')
       // Dispatch custom event for toast
       window.dispatchEvent(new CustomEvent('pwa-ready', { 
-        detail: { message: 'App cached! Now available offline.' } 
+        detail: { message: 'Ready to use offline.' } 
       }))
     },
   })
