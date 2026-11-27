@@ -7,7 +7,9 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lab": "vite -c vite.lab.config.ts --host 0.0.0.0",
+    "lab:build": "vite build -c vite.lab.config.ts"
   },
   "dependencies": {
     "@vueuse/core": "^14.0.0",
@@ -20,6 +22,16 @@
     "vue": "^3.4.31"
   },
   "devDependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/doto": "^5.3.0",
+    "@fontsource-variable/fredoka": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource-variable/martian-mono": "^5.3.0",
+    "@fontsource-variable/nunito": "^5.3.0",
+    "@fontsource-variable/reddit-mono": "^5.3.0",
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource/lilita-one": "^5.3.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^5.0.5",
