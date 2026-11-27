@@ -64,21 +64,23 @@ The total sets `--chars` to its length, and its size is worked out from the widt
 
 - `accent`: bounce. Items land soft, the total's shape changes, buttons squish.
 - `sticker`: bounce. A sticker is slapped on tilted and settles, and the tag jumps when the total changes.
-- `till`: stepped motion. A new line feeds out in steps like thermal paper.
+- `till`: no bounce. The slip feeds out when the app opens and a new line slides down from the one above. Stepped motion was tried and read as jerky, so it eases.
 - `calc`: keys travel down 4px, with a short vibration where the phone allows.
 - Rolling digits on the total in `accent` and `sticker`.
 
 Shared motion, the same in every theme:
 
-- A theme opens with its items arriving one after another (the `is-fresh` class on the root, for about a second). After that a new item arrives at once.
+- When the app opens, its items arrive one after another (the `is-fresh` class on the root, for about a second). After that, and on a change of theme, things arrive at once.
 - Changing theme or mode opens the new look out from the button that was pressed (View Transitions, where the browser has them).
-- A sheet rises from the bottom in the theme's own way: a soft overshoot in `accent` and `sticker`, steps in `till`. Its contents follow, top first.
+- A sheet rises from the bottom, with a soft overshoot in `accent` and `sticker`.
+- One thing moves at a time. Do not stack a stagger on a reveal, or start an animation that its own class removal will cut short.
+- Every theme's typefaces are fetched while the app is idle, so changing theme never swaps a face mid-move.
 - A changed quantity gives a small jump (`.bump`), an added tax pops in, and the total answers when it is copied.
 - The undo bar shows how long it will stay.
 
 ## Keyboard
 
-- **Phone.** While a price is being typed, a bar sits on top of the keyboard with the total, the quantity and **Next** (`KeyBar.vue`). The iOS number pad has no return key, so this is how a new line starts without leaving the keys. The calculator theme has its own keys and does not show it.
+- **Phone.** While a price is being typed, a bar sits on top of the keyboard with the total, the quantity and **Next** (`KeyBar.vue`). The iOS number pad has no return key, so this is how a new line starts without leaving the keys. It appears once the keyboard has finished rising. Settings has the other choice, "Full, with return": the phone's own keyboard on its number page (`type=number`), with no bar. The calculator theme has its own keys and shows neither.
 - **Desk.** Each shortcut is printed on the button it presses (`Kbd.vue`), and only where there is a mouse and a keyboard. The full list is in Settings.
 
 ## Always

@@ -64,21 +64,14 @@
 .sheet-enter-active .sheet, .sheet-leave-active .sheet { transition: transform var(--dur-base) var(--ease-out); }
 .sheet-enter-from, .sheet-leave-to { opacity: 0; }
 .sheet-enter-from .sheet, .sheet-leave-to .sheet { transform: translateY(100%); }
-.sheet-enter-active .sheet { transition-duration: 420ms; }
-.app[data-look='accent'] .sheet-enter-active .sheet, .app[data-look='sticker'] .sheet-enter-active .sheet { transition-timing-function: cubic-bezier(0.3, 1.25, 0.5, 1); }
-.app[data-look='till'] .sheet-enter-active .sheet { transition-timing-function: steps(9); }
-/* What is in a sheet arrives a moment after it, top first. */
-.sheet-enter-active .sheet-body > * { animation: sheet-in 380ms var(--ease-out) both; }
-.sheet-enter-active .sheet-body > :nth-child(2) { animation-delay: 60ms; }
-.sheet-enter-active .sheet-body > :nth-child(3) { animation-delay: 110ms; }
-.sheet-enter-active .sheet-body > :nth-child(n + 4) { animation-delay: 160ms; }
-@keyframes sheet-in { from { opacity: 0; transform: translateY(14px); } }
+.sheet-enter-active .sheet { transition-duration: 340ms; }
+.app[data-look='accent'] .sheet-enter-active .sheet, .app[data-look='sticker'] .sheet-enter-active .sheet { transition-timing-function: cubic-bezier(0.25, 1.12, 0.45, 1); }
 .sheet .btn.is-on { animation: pop-on 260ms var(--spring); }
 @keyframes pop-on { from { transform: scale(0.9); } }
 @container stage (min-width: 700px) {
   .sheet-back { align-items: center; }
   .sheet { border-bottom: var(--bw) solid var(--line); border-radius: var(--radius); max-height: 84%; }
-  .sheet-enter-from .sheet, .sheet-leave-to .sheet { transform: translateY(28px) scale(0.97); }
+  .sheet-enter-from .sheet, .sheet-leave-to .sheet { transform: translateY(20px); }
   .app[data-look='sticker'] .sheet { box-shadow: 8px 8px 0 var(--shadow); }
 }
 
@@ -92,19 +85,22 @@
 .toast:has(button)::after { content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: currentColor; opacity: 0.5; transform-origin: left; animation: toast-time 6s linear both; }
 @keyframes toast-time { to { transform: scaleX(0); } }
 /* The bar on top of the phone keyboard: the total, the quantity and Next. */
-.keybar { position: absolute; z-index: 30; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface); color: var(--ink); border-top: max(1px, var(--bw)) solid var(--line); font: 700 0.9375rem/1 var(--font-text); box-shadow: 0 -8px 24px #0002; }
+.keybar { position: absolute; z-index: 30; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: var(--surface); color: var(--ink); border-top: max(1px, var(--bw)) solid var(--line); font: 700 0.9375rem/1 var(--font-text); }
 .keybar-total { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 800 1.15rem/1 var(--font-display); font-variant-numeric: tabular-nums; }
 .app[data-look='sticker'] .keybar-total { font-weight: 400; }
 .keybar-qty { display: inline-flex; align-items: center; gap: 4px; }
 .keybar-qty b { min-width: 2.2em; text-align: center; font-variant-numeric: tabular-nums; }
-.keybar button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; border: var(--bw) solid var(--line); border-radius: var(--radius-sm); background: var(--well); color: var(--ink); font: inherit; text-transform: var(--caps); letter-spacing: var(--track); }
+.keybar button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 40px; border: var(--bw) solid var(--line); border-radius: var(--radius-sm); background: var(--well); color: var(--ink); font: inherit; text-transform: var(--caps); letter-spacing: var(--track); }
 .app[data-look='accent'] .keybar button { background: var(--acc-soft); }
 .app[data-look='till'] .keybar button { border-color: var(--ink); }
 .keybar .keybar-next { padding: 0 16px; background: var(--acc); color: var(--on-acc); }
 .app[data-look='accent'] .keybar .keybar-next { background: var(--ink); color: var(--bg); }
 .keybar button:active { transform: translateY(2px); }
-.keybar-enter-active, .keybar-leave-active { transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-base); }
-.keybar-enter-from, .keybar-leave-to { transform: translateY(100%); opacity: 0; }
+.keybar-enter-active { transition: opacity 160ms; }
+.keybar-enter-from { opacity: 0; }
 .toast button { min-height: 32px; padding: 0 4px; font: inherit; font-weight: 800; color: inherit; text-decoration: underline; text-underline-offset: 3px; background: none; border: 0; }
 .toast-enter-active, .toast-leave-active { transition: opacity var(--dur-base), transform var(--dur-base) var(--ease-out); }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(-8px); }
+/* While the bar is up it does the adding, so the round add button steps aside. */
+.app:has(.keybar) .ac-fab { opacity: 0; pointer-events: none; }
+.tl-price[type='number'] { width: 6.5em; }

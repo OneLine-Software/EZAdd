@@ -34,6 +34,8 @@ export interface Settings {
   /** The accent of each theme as a hue, 0 to 360. The theme fixes how light and strong it is, so text on it stays readable. */
   hues: Record<Look, number>
   theme: 'system' | 'light' | 'dark'
+  /** On a phone: the number pad with a Next bar above it, or the full keyboard on its number page, which has a return key. */
+  keys: 'pad' | 'full'
   myTaxes: SavedTax[]
 }
 
@@ -59,7 +61,7 @@ const guess = guessRegion()
 const basket = isDemo ? ref<Basket>(demo()) : useLocalStorage<Basket>('ezadd.basket', empty(), { mergeDefaults: true })
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams()
 const defaults = (): Settings => ({
-  currency: guess.currency, country: guess.country, place: guess.place, look: 'accent', hues: { ...HUES }, theme: 'system', myTaxes: [],
+  currency: guess.currency, country: guess.country, place: guess.place, look: 'accent', hues: { ...HUES }, theme: 'system', keys: 'pad', myTaxes: [],
 })
 const settings = isDemo
   ? ref<Settings>({ ...defaults(), currency: 'AED', country: 'AE', place: null })
@@ -76,6 +78,7 @@ const settings = isDemo
   }
   s.hues = hues
   if (!['system', 'light', 'dark'].includes(s.theme)) s.theme = 'system'
+  if (s.keys !== 'full') s.keys = 'pad'
   let money = typeof s.currency === 'string' && /^[A-Z]{3}$/.test(s.currency)
   if (money) try { new Intl.NumberFormat('en', { style: 'currency', currency: s.currency }) } catch { money = false }
   if (!money) s.currency = d.currency

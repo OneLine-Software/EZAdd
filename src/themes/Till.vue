@@ -42,7 +42,7 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
               <i class="tl-dots" />
               <span v-if="item.qty !== 1" class="tl-x">{{ item.qty }} ×</span>
               <input
-                class="tl-price" inputmode="decimal" placeholder="0.00" :value="item.value" :data-price="item.id"
+                class="tl-price" v-bind="s.priceKeys.value" placeholder="0.00" :value="item.value" :data-price="item.id"
                 :aria-label="`Price of item ${i + 1}`" :size="Math.max(4, item.value.length)"
                 @focus="active = item.id" @input="s.onInput($event, item)" @keydown="s.onKey($event, item)" @paste="s.onPaste($event, item)"
               />
@@ -99,7 +99,7 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
 .tl-top button { display: inline-flex; align-items: center; gap: 8px; min-width: 44px; min-height: 40px; justify-content: center; padding: 0 10px; border: 1px solid #fff5; border-radius: 4px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: inherit; }
 .tl-slot { height: 10px; background: linear-gradient(#000, #000) center / calc(100% - 24px) 4px no-repeat var(--case); }
 .tl-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0 12px 28px; }
-.tl-paper { max-width: 30rem; margin: 0 auto; padding: 20px 22px 34px; background: var(--surface); filter: drop-shadow(0 8px 12px var(--shade));
+.tl-paper { max-width: 30rem; margin: 0 auto; padding: 20px 22px 34px; background: var(--surface);
   --tooth: 9px;
   mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / var(--tooth) 51% repeat-x, linear-gradient(#000 0 0) top / 100% 50% no-repeat;
 }
@@ -133,23 +133,22 @@ const bars = computed(() => [...String(Math.abs(sums.value.total) * 7919 + 10472
 .tl-thanks { margin: 0 0 18px; text-align: center; text-transform: none; font: italic 400 1.4rem/1.2 'Instrument Serif', serif; color: var(--acc); }
 .tl .credit { display: flex; font-size: 0.68rem; }
 .tl-foot { display: flex; gap: 10px; padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px)); background: var(--case); }
-.tl-foot button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 48px; border-radius: 6px; background: var(--case-key); color: var(--on-case); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; box-shadow: 0 4px 0 #000; transition: transform 100ms steps(2), box-shadow 100ms steps(2); }
+.tl-foot button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 48px; border-radius: 6px; background: var(--case-key); color: var(--on-case); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; box-shadow: 0 4px 0 #000; transition: transform 90ms, box-shadow 90ms; }
 .tl-foot button:active { transform: translateY(3px); box-shadow: 0 1px 0 #000; }
 .tl-foot .tl-feed { flex: 2.2; background: var(--acc); color: var(--on-acc); }
 /* The slip feeds out of the slot when the theme opens, and the total is stamped when it is copied. */
-.is-fresh .tl-paper { animation: tl-feed 720ms steps(12) both; }
-@keyframes tl-feed { from { transform: translateY(-55%); } }
-.is-fresh .tl-line-enter-active { transition-delay: calc(120ms + var(--i, 0) * 70ms); }
-.tl-total.is-copied strong { animation: tl-stamp 320ms steps(3); }
+.is-fresh .tl-paper { animation: tl-feed 620ms var(--ease-out) both; }
+@keyframes tl-feed { from { transform: translateY(-30%); opacity: 0; } }
+.tl-total.is-copied strong { animation: tl-stamp 320ms var(--ease-out); }
 @keyframes tl-stamp { 0% { transform: scale(1.12); color: var(--acc); } }
-.tl-plain:has(button) { animation: tl-print 280ms steps(4) both; }
-@keyframes tl-print { from { opacity: 0; transform: translateY(-10px); } }
-.tl-sub { animation: tl-print 200ms steps(3) both; }
-.tl-bars i { transition: width 240ms steps(3), margin 240ms steps(3); }
-/* Printing: a new line feeds out in steps, the way a thermal printer moves paper. */
-.tl-line-enter-active { transition: transform 360ms steps(6), opacity 120ms; }
+.tl-plain:has(button) { animation: tl-print 220ms var(--ease-out) both; }
+@keyframes tl-print { from { opacity: 0; transform: translateY(-6px); } }
+.tl-sub { animation: tl-print 180ms var(--ease-out) both; }
+.tl-bars i { transition: width 240ms var(--ease-out), margin 240ms var(--ease-out); }
+/* Printing: a new line feeds down out of the one above it. */
+.tl-line-enter-active { transition: transform 260ms var(--ease-out), opacity 200ms; }
 .tl-line-leave-active { transition: opacity 160ms; }
-.tl-line-enter-from { opacity: 0; transform: translateY(-22px); }
+.tl-line-enter-from { opacity: 0; transform: translateY(-12px); }
 .tl-line-leave-to { opacity: 0; }
 @container stage (min-width: 900px) {
   .tl-scroll { padding-bottom: 48px; }

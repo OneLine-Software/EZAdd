@@ -61,7 +61,7 @@ const split = () => { tick(); basket.value.people = basket.value.people >= 6 ? 1
           <span v-if="basket.taxes.length">TAX {{ plain(sums.taxTotal) }}</span>
           <span v-if="basket.people > 1">÷{{ basket.people }} = {{ plain(shares[0]) }}</span>
         </span>
-        <output :key="sums.total" :class="{ 'is-copied': copied === 'total' }">{{ fmt(sums.total) }}</output>
+        <output :class="{ 'is-copied': copied === 'total' }">{{ fmt(sums.total) }}</output>
       </button>
 
       <section class="ca-tape" aria-label="Basket">
@@ -139,20 +139,12 @@ const split = () => { tick(); basket.value.people = basket.value.people >= 6 ? 1
 .ca-keys .ca-fn:nth-child(n + 5) { font-size: 1.2rem; }
 .ca-keys .ca-plus { grid-column: span 2; background: var(--acc); color: var(--on-acc); font-size: 1.8rem; box-shadow: 0 5px 0 var(--acc-edge); }
 .ca-keys .ca-plus:active { box-shadow: 0 1px 0 var(--acc-edge); }
-/* The screen refreshes like an LCD: a new total blinks in, and the device switches on when the theme opens. */
-.ca-lcd output { animation: ca-refresh 160ms steps(2); }
-@keyframes ca-refresh { from { opacity: 0.25; } }
+/* The screen comes on when the app opens, and blinks once when the total is copied. */
 .ca-lcd output.is-copied { animation: ca-blink 480ms steps(1) 1; }
 @keyframes ca-blink { 0%, 50% { opacity: 0.2; } 25%, 75% { opacity: 1; } }
-.is-fresh .ca-lcd { animation: ca-on 700ms steps(5) both; }
-@keyframes ca-on { from { filter: brightness(0.45) saturate(0.3); } }
-.is-fresh .ca-keys button { animation: ca-keys 420ms var(--ease-out) both; }
-.is-fresh .ca-keys button:nth-child(n + 5) { animation-delay: 50ms; }
-.is-fresh .ca-keys button:nth-child(n + 9) { animation-delay: 100ms; }
-.is-fresh .ca-keys button:nth-child(n + 13) { animation-delay: 150ms; }
-.is-fresh .ca-keys button:nth-child(n + 17) { animation-delay: 200ms; }
-@keyframes ca-keys { from { opacity: 0; transform: translateY(10px); } }
-.is-fresh .ca-line-enter-active { transition-delay: calc(var(--i, 0) * 50ms); }
+.is-fresh .ca-lcd output, .is-fresh .ca-lcd-top { animation: ca-on 600ms var(--ease-out) 150ms both; }
+@keyframes ca-on { from { opacity: 0; } }
+.is-fresh .ca-line-enter-active { transition-delay: calc(min(var(--i, 0), 8) * 35ms); }
 .ca-taxline button { animation: pop-in 240ms var(--ease-out) both; }
 .ca-keys button { position: relative; }
 .ca-keys .kbd { position: absolute; top: 4px; right: 5px; font-size: 0.55rem; }

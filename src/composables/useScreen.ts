@@ -39,6 +39,8 @@ export function useScreen() {
   const onInput = (e: Event, item: Item) => {
     const el = e.target as HTMLInputElement
     // Digits and separators only, and a minus only in front.
+    // A number field hands back nothing while what is in it is not yet a number (a lone minus, say): leave it be.
+    if (el.type === 'number' && el.value === '' && el.validity?.badInput) return
     const clean = el.value.replace(/[^\d.,-]/g, '').replace(/(?!^)-/g, '')
     if (clean !== el.value) el.value = clean
     item.value = clean
@@ -85,7 +87,9 @@ export function useScreen() {
     t.type === 'percentage' && !t.label.includes('%') ? `${t.label} ${t.value}%` : t.label
   /** The country a currency is shown with: its code's first two letters, as ISO 4217 builds them. EUR is the European Union. */
   const flagOf = (currency: string) => (currency.startsWith('X') ? null : currency.slice(0, 2))
+  /** How a price field asks for a keyboard. `type=number` is what makes an iPhone open the number page of its full keyboard. */
+  const priceKeys = computed(() => (b.settings.value.keys === 'full' ? { type: 'number', step: 'any' } : { type: 'text', inputmode: 'decimal' as const }))
   const things = computed(() => `${b.count.value} ${b.count.value === 1 ? 'thing' : 'things'}`)
 
-  return { ...b, root, active, sheet, copied, focus, add, onKey, onInput, onPaste, copy, share, copyLink, people, taxText, flagOf, things }
+  return { ...b, root, active, sheet, copied, focus, add, onKey, onInput, onPaste, copy, share, copyLink, people, taxText, flagOf, things, priceKeys }
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The frame: which theme is on, its colour and mode, and the parts every theme shares.
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue'
 import { useScreen } from '@/composables/useScreen'
 import { useShortcuts } from '@/composables/useShortcuts'
 import { useToast } from '@/composables/useToast'
@@ -33,20 +33,28 @@ const fit = () => {
   if (window.visualViewport && window.visualViewport.offsetTop > 0) window.scrollTo(0, 0)
 }
 
-// For the first moments of a theme its items arrive one after another. After that a new item arrives at once.
+// When the app opens, its items arrive one after another. After that, and on a change of theme, things arrive at once:
+// the new look opening out is enough movement for one moment.
 const fresh = ref(true)
 let freshTimer: ReturnType<typeof setTimeout> | undefined
-const settle = () => { clearTimeout(freshTimer); fresh.value = true; freshTimer = setTimeout(() => (fresh.value = false), 1200) }
-watch(() => settings.value.look, settle, { immediate: true })
+freshTimer = setTimeout(() => (fresh.value = false), 1100)
+
+// The other themes' typefaces are fetched while nothing else is happening, so a change of theme never
+// shows one face and then jumps to another.
+const FACES = ['Bricolage Grotesque', 'Martian Mono', 'Instrument Serif', 'Lilita One', 'Nunito', 'Doto', 'Space Grotesk']
+const warm = () => FACES.forEach((f) => document.fonts?.load(`${f === 'Instrument Serif' ? 'italic ' : ''}1em "${f}"`).catch(() => {}))
 const note = (e: Event) => addToast((e as CustomEvent).detail.message, 'info')
 onMounted(() => {
   fit()
+  if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 3000 })
+  else setTimeout(warm, 1500)
   window.visualViewport?.addEventListener('resize', fit)
   window.visualViewport?.addEventListener('scroll', fit)
   window.addEventListener('pwa-update', note)
   window.addEventListener('pwa-ready', note)
 })
 onUnmounted(() => {
+  clearTimeout(freshTimer)
   window.visualViewport?.removeEventListener('resize', fit)
   window.visualViewport?.removeEventListener('scroll', fit)
   window.removeEventListener('pwa-update', note)

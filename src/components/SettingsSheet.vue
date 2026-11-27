@@ -32,6 +32,7 @@ const swap = (e: MouseEvent, change: () => void) => {
   document.documentElement.style.setProperty('--vt-y', `${r.top + r.height / 2}px`)
   doc.startViewTransition(async () => { change(); await nextTick() })
 }
+const touch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches
 const isOwn = computed(() => hue.value === HUES[settings.value.look])
 
 // Feedback goes to the app's own small API (Cloudflare Pages Functions).
@@ -88,6 +89,15 @@ const send = async () => {
         {{ m === 'system' ? 'Follow the device' : m === 'light' ? 'Light' : 'Dark' }}
       </button>
     </div>
+  </section>
+
+  <section v-if="touch">
+    <h3>Keyboard for prices</h3>
+    <div class="row" role="group" aria-label="Keyboard for prices">
+      <button type="button" class="btn" :class="{ 'is-on': settings.keys === 'pad' }" :aria-pressed="settings.keys === 'pad'" @click="settings.keys = 'pad'">Number pad</button>
+      <button type="button" class="btn" :class="{ 'is-on': settings.keys === 'full' }" :aria-pressed="settings.keys === 'full'" @click="settings.keys = 'full'">Full, with return</button>
+    </div>
+    <p class="note">{{ settings.keys === 'pad' ? 'Big number keys, with a Next button in a bar above them.' : 'The phone’s own keyboard on its number page. Return starts the next item.' }}</p>
   </section>
 
   <section>

@@ -9,10 +9,21 @@ const s = useScreen()
 const itemId = ref<number | null>(null)
 const touch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches
 
+// The bar waits until the keyboard has finished coming up, then appears in place. Arriving together with the
+// keyboard made two things move at once.
+const ready = ref(false)
+let wait: ReturnType<typeof setTimeout> | undefined
+const show = () => { clearTimeout(wait); ready.value = true }
 const watchFocus = () => {
   const el = document.activeElement as HTMLElement | null
   // The calculator has its own keys and never opens the keyboard.
   const id = el?.matches?.('[data-price]:not([inputmode="none"])') ? Number(el.dataset.price) : null
+  if (id !== null && itemId.value === null) {
+    ready.value = false
+    clearTimeout(wait)
+    wait = setTimeout(show, 450)
+    window.visualViewport?.addEventListener('resize', show, { once: true })
+  }
   itemId.value = id
 }
 onMounted(() => {
@@ -32,7 +43,7 @@ const qty = (by: number) => {
 <template>
   <Transition name="keybar">
     <!-- pointerdown is stopped so the field keeps its focus and the keyboard stays up -->
-    <div v-if="touch && itemId !== null && !s.sheet.value" class="keybar" @pointerdown.prevent @mousedown.prevent>
+    <div v-if="touch && ready && itemId !== null && !s.sheet.value && s.settings.value.keys === 'pad'" class="keybar" @pointerdown.prevent @mousedown.prevent>
       <span class="keybar-total" aria-hidden="true">{{ s.fmt(s.sums.value.total) }}</span>
       <span class="keybar-qty">
         <button type="button" aria-label="One fewer" @click="qty(-1)"><Minus :size="18" :stroke-width="3" /></button>

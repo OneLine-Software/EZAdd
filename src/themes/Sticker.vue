@@ -24,7 +24,7 @@ watch(() => sums.value.total, () => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
   tag.value?.animate(
     [{ transform: 'rotate(-2deg) scale(1)' }, { transform: 'rotate(-4deg) scale(1.06)' }, { transform: 'rotate(-2deg) scale(1)' }],
-    { duration: 380, easing: 'cubic-bezier(0.3, 1.6, 0.5, 1)' },
+    { duration: 380, easing: 'cubic-bezier(0.3, 1.3, 0.5, 1)' },
   )
 })
 </script>
@@ -56,7 +56,7 @@ watch(() => sums.value.total, () => {
           <label class="st-flag">
             <small>each</small>
             <input
-              :style="{ width: Math.min(5.4, Math.max(3.4, item.value.length * 0.6 + 0.2)) + 'em' }" inputmode="decimal" placeholder="0.00" :value="item.value" :data-price="item.id" :aria-label="`Price of item ${i + 1}`"
+              :style="{ width: Math.min(5.4, Math.max(3.4, item.value.length * 0.6 + 0.2)) + 'em' }" v-bind="s.priceKeys.value" placeholder="0.00" :value="item.value" :data-price="item.id" :aria-label="`Price of item ${i + 1}`"
               @input="s.onInput($event, item)" @keydown="s.onKey($event, item)" @paste="s.onPaste($event, item)"
             />
           </label>
@@ -90,7 +90,7 @@ watch(() => sums.value.total, () => {
 </template>
 
 <style>
-.st { position: absolute; inset: 0; display: flex; flex-direction: column; font: 700 15px/1.4 var(--font-text); --roll-ease: cubic-bezier(0.3, 1.5, 0.5, 1); --roll-dur: 560ms; }
+.st { position: absolute; inset: 0; display: flex; flex-direction: column; font: 700 15px/1.4 var(--font-text); --roll-ease: cubic-bezier(0.3, 1.25, 0.5, 1); --roll-dur: 560ms; }
 .st button { border: 0; background: none; }
 .st input { border: 0; background: none; outline: none; min-width: 0; font: inherit; }
 .st :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
@@ -131,18 +131,18 @@ watch(() => sums.value.total, () => {
 .st-tag .roll { justify-content: flex-end; font: 400 min(3.4rem, calc(100cqw / (var(--chars) * 0.6))) / 1.15 var(--font-display); text-shadow: 3px 3px 0 var(--navy); }
 .st-hole { position: absolute; left: 14px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--bg); border: 3px solid var(--navy); }
 .st-tax:not(.st-tax-add) { animation: st-slap 420ms var(--spring) both; }
-@keyframes st-slap { from { opacity: 0; transform: rotate(-9deg) scale(1.4); } }
-.is-fresh .st-item-enter-active { transition-delay: calc(var(--i, 0) * 70ms); }
-.is-fresh .st-tag { animation: st-swing 900ms var(--spring) 200ms both; transform-origin: 22px 50%; }
-@keyframes st-swing { from { opacity: 0; transform: rotate(-16deg) translateY(30px); } 55% { transform: rotate(2deg); } }
+@keyframes st-slap { from { opacity: 0; transform: rotate(-6deg) scale(1.15); } }
+.is-fresh .st-item-enter-active { transition-delay: calc(min(var(--i, 0), 8) * 45ms); }
+.is-fresh .st-tag { animation: st-swing 600ms var(--spring) 120ms both; transform-origin: 22px 50%; }
+@keyframes st-swing { from { opacity: 0; transform: rotate(-9deg) translateY(16px); } }
 .is-fresh .st-mark { animation: st-spin 900ms var(--spring) both; }
-@keyframes st-spin { from { transform: rotate(-200deg) scale(0.3); } }
+@keyframes st-spin { from { transform: rotate(-90deg) scale(0.6); opacity: 0; } }
 .st-pill:hover .flag { transform: rotate(6deg) scale(1.1); }
 .st .flag { transition: transform 200ms var(--spring); }
 /* A sticker is slapped on: it arrives big and tilted, and settles with a bounce. Bounce is a named exception here (DESIGN.md). */
 .st-item-enter-active { transition: transform 420ms var(--spring), opacity 160ms; }
 .st-item-leave-active { transition: transform 200ms ease-in, opacity 200ms; }
-.st-item-enter-from { opacity: 0; transform: rotate(-7deg) scale(1.18); }
+.st-item-enter-from { opacity: 0; transform: rotate(-4deg) scale(1.08); }
 .st-item-leave-to { opacity: 0; transform: rotate(6deg) scale(0.8); }
 @container stage (min-width: 900px) {
   .st { display: grid; grid-template-columns: minmax(0, 34rem) minmax(0, 24rem); grid-template-rows: auto 1fr; justify-content: center; column-gap: 40px; padding: 16px 24px; }

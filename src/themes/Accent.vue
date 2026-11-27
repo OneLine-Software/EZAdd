@@ -43,7 +43,7 @@ watch(() => sums.value.total, () => (shape.value = (shape.value + 1) % SHAPES.le
         <li v-for="(item, i) in basket.items" :key="item.id" :style="{ '--i': i }">
           <input v-model="item.name" class="ac-name" :placeholder="`item ${i + 1}`" :aria-label="`Name of item ${i + 1}`" maxlength="40" />
           <input
-            class="ac-price" :style="{ width: Math.min(6, Math.max(3.8, item.value.length * 0.62 + 0.3)) + 'em' }" inputmode="decimal" placeholder="0.00" :value="item.value" :data-price="item.id" :aria-label="`Price of item ${i + 1}`"
+            class="ac-price" :style="{ width: Math.min(6, Math.max(3.8, item.value.length * 0.62 + 0.3)) + 'em' }" v-bind="s.priceKeys.value" placeholder="0.00" :value="item.value" :data-price="item.id" :aria-label="`Price of item ${i + 1}`"
             @input="s.onInput($event, item)" @keydown="s.onKey($event, item)" @paste="s.onPaste($event, item)"
           />
           <div class="ac-qty">
@@ -78,7 +78,7 @@ watch(() => sums.value.total, () => (shape.value = (shape.value + 1) % SHAPES.le
 .ac-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; transition: transform 300ms var(--squish); }
 .ac-icon:active { transform: rotate(60deg) scale(0.9); }
 .ac-hero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; container-type: inline-size; padding: 22px 26px; margin: 4px 16px 0; color: var(--on-acc); isolation: isolate; }
-.ac-blob { position: absolute; inset: 0; z-index: -1; background: var(--acc); transition: border-radius 700ms var(--squish), background-color 300ms; }
+.ac-blob { position: absolute; inset: 0; z-index: -1; background: var(--acc); transition: border-radius 600ms var(--ease-out); }
 .ac-hero small { font-weight: 600; opacity: 0.75; }
 .ac-total { color: inherit; font: inherit; max-width: 100%; }
 .ac-total .roll { font-size: min(4.6rem, calc(100cqw / (var(--chars) * 0.6))); font-weight: 800; letter-spacing: -0.05em; }
@@ -107,16 +107,16 @@ watch(() => sums.value.total, () => (shape.value = (shape.value + 1) % SHAPES.le
 .ac-total.is-copied { animation: ac-copied 520ms var(--squish); }
 @keyframes ac-copied { 30% { transform: scale(0.94, 1.06); } 60% { transform: scale(1.05, 0.96); } }
 .ac-chip-on { animation: pop-in 420ms var(--squish) both; }
-.is-fresh .ac-item-enter-active { transition-delay: calc(var(--i, 0) * 60ms); }
+.is-fresh .ac-item-enter-active { transition-delay: calc(min(var(--i, 0), 8) * 40ms); }
 .is-fresh .ac-hero { animation: ac-land 700ms var(--squish) both; }
-@keyframes ac-land { from { opacity: 0; transform: scale(0.8, 0.9) translateY(-14px); } }
+@keyframes ac-land { from { opacity: 0; transform: scale(0.94) translateY(-8px); } }
 .is-fresh .ac-fab { animation: pop-in 600ms var(--squish) 380ms both; }
 .ac-fab span { display: block; transition: transform 300ms var(--squish); }
 .ac-fab:active span { transform: rotate(90deg); }
 /* An item drops in and lands soft; it squashes on the way out. Bounce is this theme's signature (DESIGN.md). */
 .ac-item-enter-active { transition: transform 460ms var(--squish), opacity 140ms; }
 .ac-item-leave-active { transition: transform 200ms ease-in, opacity 200ms; }
-.ac-item-enter-from { opacity: 0; transform: translateY(-26px) scale(0.9, 1.12); }
+.ac-item-enter-from { opacity: 0; transform: translateY(-16px) scale(0.96, 1.04); }
 .ac-item-leave-to { opacity: 0; transform: scale(0.7, 0.4); }
 @container stage (min-width: 900px) {
   .ac { display: grid; grid-template-columns: minmax(0, 28rem) minmax(0, 34rem); grid-template-rows: auto 1fr; justify-content: center; column-gap: 32px; padding: 16px 24px; }
