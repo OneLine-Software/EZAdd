@@ -1,0 +1,303 @@
+// The basket: items, taxes, the split and the settings. One copy for the whole app,
+// saved on the device after every change, with one step of undo for anything that removes.
+
+import { computed, ref, watch } from 'vue'
+import { useLocalStorage } from '@vueuse/core'
+import { totals as sumUp, split, parsePasted, type Item, type Tax } from '@/lib/money'
+import { decimalsOf, formatMinor, moneyParts, plainMinor } from '@/lib/currency'
+import { guessRegion } from '@/lib/region'
+
+export interface Basket {
+  items: Item[]
+  taxes: Tax[]
+  people: number
+  nextId: number
+}
+
+export interface SavedTax {
+  type: Tax['type']
+  value: string
+  label: string
+}
+
+export type Look = 'accent' | 'till' | 'sticker' | 'calc'
+
+/** Each theme's own colour: periwinkle, till red, sale red and calculator orange. */
+export const HUES: Record<Look, number> = { accent: 265, till: 30, sticker: 25, calc: 48 }
+
+export interface Settings {
+  currency: string
+  country: string | null
+  place: string | null
+  /** Which of the four themes is on. */
+  look: Look
+  /** The accent of each theme as a hue, 0 to 360. The theme fixes how light and strong it is, so text on it stays readable. */
+  hues: Record<Look, number>
+  theme: 'system' | 'light' | 'dark'
+  /** On a phone: the number pad with a Next bar above it, or the full keyboard on its number page, which has a return key. */
+  keys: 'pad' | 'full'
+  myTaxes: SavedTax[]
+}
+
+const empty = (): Basket => ({ items: [{ id: 1, name: '', value: '', qty: 1 }], taxes: [], people: 1, nextId: 2 })
+
+const demo = (): Basket => ({
+  items: [
+    { id: 1, name: 'Flat white', value: '21.00', qty: 2 },
+    { id: 2, name: 'Sourdough loaf', value: '28.50', qty: 1 },
+    { id: 3, name: 'Eggs, dozen', value: '17.25', qty: 1 },
+    { id: 4, name: 'Dates', value: '12.00', qty: 3 },
+    { id: 5, name: 'Sparkling water', value: '4.75', qty: 6 },
+  ],
+  taxes: [{ id: 6, type: 'percentage', value: '5', label: 'VAT' }],
+  people: 2,
+  nextId: 7,
+})
+
+const isDemo = typeof location !== 'undefined' && new URLSearchParams(location.search).has('demo')
+const guess = guessRegion()
+
+// In the demo nothing is read from or written to the device, so a visitor's own basket is left alone.
+const basket = isDemo ? ref<Basket>(demo()) : useLocalStorage<Basket>('ezadd.basket', empty(), { mergeDefaults: true })
+const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams()
+const defaults = (): Settings => ({
+  currency: guess.currency, country: guess.country, place: guess.place, look: 'accent', hues: { ...HUES }, theme: 'system', keys: 'pad', myTaxes: [],
+})
+const settings = isDemo
+  ? ref<Settings>({ ...defaults(), currency: 'AED', country: 'AE', place: null })
+  : useLocalStorage<Settings>('ezadd.settings', defaults(), { mergeDefaults: true })
+// What was saved may be from an older version, or damaged. Anything that does not fit goes back to its default.
+{
+  const s = settings.value
+  const d = defaults()
+  if (!(s.look in HUES)) s.look = d.look
+  const hues = { ...HUES }
+  for (const k of Object.keys(HUES) as Look[]) {
+    const h = Number((s.hues as Record<string, unknown> | null)?.[k])
+    if (Number.isFinite(h)) hues[k] = ((Math.round(h) % 360) + 360) % 360
+  }
+  s.hues = hues
+  if (!['system', 'light', 'dark'].includes(s.theme)) s.theme = 'system'
+  if (s.keys !== 'full') s.keys = 'pad'
+  let money = typeof s.currency === 'string' && /^[A-Z]{3}$/.test(s.currency)
+  if (money) try { new Intl.NumberFormat('en', { style: 'currency', currency: s.currency }) } catch { money = false }
+  if (!money) s.currency = d.currency
+  if (typeof s.country !== 'string') s.country = null
+  if (typeof s.place !== 'string') s.place = null
+  s.myTaxes = (Array.isArray(s.myTaxes) ? s.myTaxes : [])
+    .filter((t) => t && typeof t.label === 'string' && (t.type === 'percentage' || t.type === 'flat'))
+    .map((t) => ({ type: t.type, value: String(t.value ?? ''), label: t.label.slice(0, 40) }))
+    .slice(0, 30)
+}
+{
+  const b = basket.value
+  const items = (Array.isArray(b?.items) ? b.items : []).filter((i) => i && Number.isFinite(i.id))
+    .map((i) => ({ id: i.id, name: String(i.name ?? '').slice(0, 80), value: String(i.value ?? '').replace(/[^\d.,-]/g, '').slice(0, 16), qty: Math.min(999, Math.max(0.5, Number(i.qty) || 1)) }))
+  const taxes = (Array.isArray(b?.taxes) ? b.taxes : []).filter((t) => t && Number.isFinite(t.id) && (t.type === 'percentage' || t.type === 'flat'))
+    .map((t) => ({ id: t.id, type: t.type, value: String(t.value ?? ''), label: String(t.label ?? '').slice(0, 40) }))
+  const top = Math.max(0, ...items.map((i) => i.id), ...taxes.map((t) => t.id))
+  basket.value = {
+    items, taxes,
+    people: Math.min(20, Math.max(1, Math.floor(Number(b?.people) || 1))),
+    nextId: Math.max(Number(b?.nextId) || 0, top + 1),
+  }
+}
+// For screenshots and the demo video: ?demo&look=till&theme=dark opens that theme without saving it.
+if (isDemo) {
+  const look = params.get('look') as Look | null
+  if (look && look in HUES) settings.value.look = look
+  const theme = params.get('theme')
+  if (theme === 'light' || theme === 'dark') settings.value.theme = theme
+  const currency = params.get('currency')
+  if (currency && /^[A-Z]{3}$/.test(currency)) settings.value.currency = currency
+}
+
+if (!basket.value.items?.length) basket.value = empty()
+
+export interface Undo {
+  label: string
+  run: () => void
+}
+const undo = ref<Undo | null>(null)
+let undoTimer: ReturnType<typeof setTimeout> | undefined
+
+function removing(label: string, change: () => void) {
+  const before = JSON.stringify(basket.value)
+  change()
+  clearTimeout(undoTimer)
+  undo.value = {
+    label,
+    run: () => {
+      basket.value = JSON.parse(before)
+      undo.value = null
+    },
+  }
+  undoTimer = setTimeout(() => (undo.value = null), 6000)
+}
+
+const decimals = computed(() => decimalsOf(settings.value.currency))
+const sums = computed(() => sumUp(basket.value.items, basket.value.taxes, decimals.value))
+const shares = computed(() => split(sums.value.total, basket.value.people))
+const count = computed(() => basket.value.items.filter((i) => i.value !== '').reduce((n, i) => n + (i.qty || 0), 0))
+
+const id = () => basket.value.nextId++
+
+function addItem(afterId?: number): number {
+  const item: Item = { id: id(), name: '', value: '', qty: 1 }
+  const at = afterId === undefined ? -1 : basket.value.items.findIndex((i) => i.id === afterId)
+  if (at >= 0) basket.value.items.splice(at + 1, 0, item)
+  else basket.value.items.push(item)
+  return item.id
+}
+
+function removeItem(itemId: number) {
+  const item = basket.value.items.find((i) => i.id === itemId)
+  if (!item) return
+  const change = () => {
+    basket.value.items = basket.value.items.filter((i) => i.id !== itemId)
+    if (!basket.value.items.length) addItem()
+  }
+  // An empty line is not worth an undo.
+  if (item.value === '' && item.name === '') change()
+  else removing(item.name ? `Removed ${item.name}` : 'Removed an item', change)
+}
+
+function setQty(itemId: number, qty: number) {
+  const item = basket.value.items.find((i) => i.id === itemId)
+  if (item) item.qty = Math.min(999, Math.max(0.5, Math.round(qty * 2) / 2))
+}
+
+function clear() {
+  const used = basket.value.items.some((i) => i.value !== '' || i.name !== '') || basket.value.taxes.length > 0
+  const change = () => {
+    basket.value = { ...empty(), nextId: basket.value.nextId + 1, items: [{ id: basket.value.nextId, name: '', value: '', qty: 1 }] }
+  }
+  if (used) removing('Cleared the basket', change)
+  else change()
+}
+
+/** A pasted column fills this line and adds one line for each further number. Returns how many it read. */
+function paste(itemId: number, text: string): number {
+  const values = parsePasted(text)
+  const at = basket.value.items.findIndex((i) => i.id === itemId)
+  if (!values.length || at < 0) return 0
+  basket.value.items[at].value = values[0]
+  const more = values.slice(1).map((value) => ({ id: id(), name: '', value, qty: 1 }))
+  basket.value.items.splice(at + 1, 0, ...more)
+  return values.length
+}
+
+function addTax(tax: SavedTax, remember = false) {
+  const value = String(tax.value).trim()
+  if (!value) return
+  const label = tax.label.trim() || (tax.type === 'percentage' ? `${value}%` : 'Fee')
+  basket.value.taxes.push({ id: id(), type: tax.type, value, label })
+  if (remember && !settings.value.myTaxes.some((t) => t.label === label && t.value === value && t.type === tax.type)) {
+    settings.value.myTaxes.push({ type: tax.type, value, label })
+  }
+}
+
+/** Adds it when it is not in the basket, takes it off when it is. Presets are matched by label and rate. */
+function hasTax(tax: SavedTax): Tax | undefined {
+  return basket.value.taxes.find((t) => t.label === tax.label && t.type === tax.type && Number(t.value) === Number(tax.value))
+}
+
+function removeTax(taxId: number) {
+  const tax = basket.value.taxes.find((t) => t.id === taxId)
+  if (tax) removing(`Removed ${tax.label}`, () => (basket.value.taxes = basket.value.taxes.filter((t) => t.id !== taxId)))
+}
+
+function forgetMyTax(index: number) {
+  settings.value.myTaxes.splice(index, 1)
+}
+
+const fmt = (minor: number) => formatMinor(minor, settings.value.currency)
+const parts = (minor: number) => moneyParts(minor, settings.value.currency)
+const plain = (minor: number) => plainMinor(minor, settings.value.currency)
+
+/** The basket as a plain-text receipt, for the share sheet or the clipboard. */
+function receipt(): string {
+  const s = sums.value
+  const rows: [string, string][] = []
+  basket.value.items.forEach((item, i) => {
+    if (item.value === '') return
+    const name = item.name || `Item ${i + 1}`
+    rows.push([item.qty === 1 ? name : `${name} × ${item.qty}`, fmt(s.lines[i])])
+  })
+  const width = Math.max(24, ...rows.map(([a, b]) => a.length + b.length + 2))
+  const line = ([a, b]: [string, string]) => a + ' '.repeat(Math.max(1, width - a.length - b.length)) + b
+  const out = ['EZAdd', '-'.repeat(width), ...rows.map(line)]
+  if (basket.value.taxes.length) {
+    out.push('-'.repeat(width), line(['Subtotal', fmt(s.subtotal)]))
+    basket.value.taxes.forEach((t, i) => out.push(line([t.type === 'percentage' && !t.label.includes('%') ? `${t.label} ${t.value}%` : t.label, fmt(s.taxes[i])])))
+  }
+  out.push('-'.repeat(width), line(['TOTAL', fmt(s.total)]))
+  if (basket.value.people > 1) out.push(line([`Split by ${basket.value.people}`, fmt(shares.value[0])]))
+  return out.join('\n')
+}
+
+/**
+ * The basket as a link. Everything is in the part after the #, which a browser never sends to a server,
+ * so sharing a basket stores nothing anywhere.
+ */
+function link(): string {
+  const b = basket.value
+  const data = {
+    c: settings.value.currency,
+    i: b.items.filter((i) => i.value !== '').map((i) => [i.name, i.value, i.qty]),
+    t: b.taxes.map((t) => [t.label, t.value, t.type === 'percentage' ? 1 : 0]),
+    p: b.people,
+  }
+  const bytes = new TextEncoder().encode(JSON.stringify(data))
+  const b64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  return `${location.origin}${location.pathname}#b=${b64}`
+}
+
+/** Opens a basket from a link. The basket that was there can be put back. */
+function openLink(hash: string): boolean {
+  const m = /^#b=([\w-]+)$/.exec(hash)
+  if (!m) return false
+  try {
+    const bin = atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))
+    const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (ch) => ch.charCodeAt(0))))
+    let n = 1
+    const items: Item[] = (data.i as unknown[][]).slice(0, 500).map(([name, value, qty]) => ({
+      id: n++, name: String(name ?? '').slice(0, 80), value: String(value ?? '').replace(/[^\d.,-]/g, '').slice(0, 16), qty: Math.min(999, Math.max(0.5, Number(qty) || 1)),
+    }))
+    const taxes: Tax[] = ((data.t ?? []) as unknown[][]).slice(0, 20).map(([label, value, pct]) => ({
+      id: n++, label: String(label ?? '').slice(0, 40), value: String(value ?? '').replace(/[^\d.,-]/g, '').slice(0, 16), type: pct ? 'percentage' : 'flat',
+    }))
+    if (!items.length) return false
+    removing('Opened a shared basket', () => {
+      basket.value = { items, taxes, people: Math.min(20, Math.max(1, Math.floor(Number(data.p) || 1))), nextId: n }
+    })
+    if (typeof data.c === 'string' && /^[A-Z]{3}$/.test(data.c)) settings.value.currency = data.c
+    return true
+  } catch {
+    return false
+  }
+}
+if (typeof location !== 'undefined' && openLink(location.hash)) {
+  history.replaceState(null, '', location.pathname + location.search)
+}
+
+// The theme follows the device unless the person picked one.
+const systemDark = ref(false)
+if (typeof window !== 'undefined' && window.matchMedia) {
+  const query = window.matchMedia('(prefers-color-scheme: dark)')
+  systemDark.value = query.matches
+  query.addEventListener('change', (e) => (systemDark.value = e.matches))
+}
+const dark = computed(() => (settings.value.theme === 'system' ? systemDark.value : settings.value.theme === 'dark'))
+if (typeof document !== 'undefined') {
+  watch(dark, (on) => document.documentElement.classList.toggle('dark', on), { immediate: true })
+}
+
+export function useBasket() {
+  return {
+    basket, settings, isDemo, undo, dark,
+    decimals, sums, shares, count,
+    addItem, removeItem, setQty, clear, paste, addTax, hasTax, removeTax, forgetMyTax,
+    fmt, parts, plain, receipt, link,
+  }
+}
