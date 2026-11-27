@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@vueuse/core": "^14.0.0",
@@ -26,6 +27,7 @@
     "typescript": "^5.2.2",
     "vite": "^5.3.4",
     "vite-plugin-pwa": "^1.1.0",
+    "vitest": "^3.2.4",
     "vue-tsc": "^2.0.24",
     "workbox-window": "^7.3.0"
   }
