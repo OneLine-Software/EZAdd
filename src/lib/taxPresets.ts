@@ -4,7 +4,8 @@
 //   United States: Tax Foundation, "State and Local Sales Tax Rates, Midyear 2026" (rates as of 1 July 2026)
 //   Canada:        TaxTips.ca, "2026 Sales Tax Rates" (revised 28 August 2026)
 //   Europe:        Tax Foundation, "VAT Rates in Europe" (as of January 2026)
-// The other countries are their standard national rate (see CHECKED below).
+// The countries outside those three lists carry their standard national rate from general knowledge.
+// They have NOT been checked against a source yet (LAB-74): check each before relying on it.
 //
 // A preset is a starting point. Every rate can be changed before it is added, because a city,
 // a county or a kind of product often has its own. To update: change the number here, change
